@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+    <menu xmlns:android="http://schemas.android.com/apk/res/android" >
+        <group android:checkableBehavior="single">
+            <item
+                android:id="@+id/history"
+                android:icon="@drawable/ic_history_black_24dp"
+                android:title="@string/history" />
+            <item
+                android:id="@+id/recommend"
+                android:icon="@drawable/ic_share_black_24dp"
+                android:title="@string/recommend" />
+            <item
+                android:id="@+id/privacy"
+                android:icon="@drawable/ic_privacy_24dp"
+                android:title="@string/privacy" />
+            <item
+                android:id="@+id/payment"
+                android:icon="@drawable/ic_payment_black_24dp"
+                android:title="@string/payment" />
+
+            <item
+                android:id="@+id/signout"
+                android:icon="@drawable/ic_exit_to_app_black_24dp"
+                android:title="@string/signout" />
+
+        </group>
+    </menu>
