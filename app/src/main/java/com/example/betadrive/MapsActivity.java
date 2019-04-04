@@ -121,10 +121,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         asyncTaskLoader = loaderManager.getLoader(ASYNCTASKLOADER_ID);
 
         if(asyncTaskLoader == null){
-            Log.w(TAG,"here1");
             loaderManager.initLoader(ASYNCTASKLOADER_ID, loaderBundle, callback);
         } else {
-            Log.w(TAG,"here2");
             loaderManager.restartLoader(ASYNCTASKLOADER_ID, loaderBundle, callback);
         }
 
@@ -210,41 +208,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         Intent intent = getIntent();
         Bundle message = intent.getExtras();
-        account = new AccountContract();
+        account = message.getParcelable("account");
 
-        account.setUSER_ID(message.getString(getString(R.string.user_id)));
-        account.setFULL_NAME(message.getString(getString(R.string.full_name)));
-        account.setUSER_EMAIL(message.getString(getString(R.string.user_email)));
-        account.setUSER_PHOTO(message.getString(getString(R.string.user_photo)));
-        account.setUSER_TOKEN(message.getString(getString(R.string.user_token)));
-
-        Log.w("user_id", account.getFULL_NAME());
-        Log.w("full_name", account.getFULL_NAME());
-        Log.w("user_email", account.getUSER_EMAIL());
-        Log.w("user_photo", account.getUSER_PHOTO());
-        Log.w("user_token", account.getUSER_TOKEN());
+        Log.w(TAG, account.toString());
 
 
         drawerLayout = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(
-                new NavigationView.OnNavigationItemSelectedListener() {
+                menuItem -> {
+                    // set item as selected to persist highlight
+                    menuItem.setChecked(true);
+                    // close drawer when item is tapped
+                    //drawerLayout.closeDrawers();
 
-                    @Override
-                    public boolean onNavigationItemSelected(MenuItem menuItem) {
-                        // set item as selected to persist highlight
-                        menuItem.setChecked(true);
-                        // close drawer when item is tapped
-                        //drawerLayout.closeDrawers();
-
-                        switch (menuItem.getItemId()) {
-                            case R.id.signout:
-                                signOut();
-                                break;
-                        }
-
-                        return true;
+                    switch (menuItem.getItemId()) {
+                        case R.id.signout:
+                            signOut();
+                            break;
                     }
+
+                    return true;
                 });
 
 

@@ -1,5 +1,6 @@
 package com.example.betadrive;
 
+import com.example.betadrive.DataModels.AccountContract;
 import com.example.betadrive.Registration.CustomLoginActivity;
 import com.example.betadrive.Registration.RegistrationActivity;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -84,10 +85,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
 
         mAuth = FirebaseAuth.getInstance();
-
-//        client = new GoogleApiClient.Builder(this)
-//                .addApi(LocationServices.API)
-//                .build();
 
     }
 
@@ -210,13 +207,15 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         if(account != null){
 
+            AccountContract loginAccount = new AccountContract(
+                    account.getUid()
+                    , account.getDisplayName()
+                    , account.getEmail()
+                    , String.valueOf(account.getPhotoUrl())
+                    , String.valueOf(account.getIdToken(false))
+            );
             Bundle message = new Bundle();
-            message.putString(getString(R.string.user_id), String.valueOf(account.getUid()) );
-            message.putString(getString(R.string.full_name), String.valueOf(account.getDisplayName()) );
-            message.putString(getString(R.string.user_email), String.valueOf(account.getEmail()) );
-            message.putString(getString(R.string.user_photo), String.valueOf(account.getPhotoUrl()) );
-            message.putString(getString(R.string.user_token), String.valueOf(account.getIdToken(false)) );
-
+            message.putParcelable("account", loginAccount);
 
             Intent intent = new Intent(this, MapsActivity.class);
             intent.putExtras(message);
