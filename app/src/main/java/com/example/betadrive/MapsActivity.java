@@ -7,6 +7,7 @@ import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.BundleCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.PermissionChecker;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentActivity;
@@ -14,12 +15,19 @@ import androidx.loader.app.LoaderManager;
 import androidx.loader.content.Loader;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Address;
+import android.location.Criteria;
 import android.location.Geocoder;
 import android.location.Location;
+import android.location.LocationManager;
+import android.location.LocationProvider;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -51,6 +59,7 @@ import com.google.android.libraries.places.api.Places;
 
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.api.model.PlaceLikelihood;
+import com.google.android.libraries.places.api.model.TypeFilter;
 import com.google.android.libraries.places.api.net.FindCurrentPlaceRequest;
 import com.google.android.libraries.places.api.net.FindCurrentPlaceResponse;
 import com.google.android.libraries.places.api.net.PlacesClient;
@@ -59,6 +68,7 @@ import com.google.android.libraries.places.widget.AutocompleteActivity;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.squareup.picasso.Picasso;
@@ -73,7 +83,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final String TAG = MapsActivity.class.getSimpleName() ;
 
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION    = 1;
-    private static final int DEFAULT_ZOOM                                   = 15;
+    private static final int DEFAULT_ZOOM                                   = 17;
     private static final int AUTOCOMPLETE_REQUEST_CODE                      = 1;
     private static final int ASYNCTASKLOADER_ID                             = 1;
 
@@ -102,8 +112,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Bundle loaderBundle = new Bundle();
 
     //View
-    private TextView pickupPlace;
-    private TextView destPlace;
+    private TextView                pickupPlace;
+    private TextView                destPlace;
+    private FloatingActionButton    fab;
+    private FloatingActionButton    fab_next;
+    private View                    locationButton;
 
 
 
@@ -112,9 +125,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
+
         //RESOURCES & VIEWS
         pickupPlace = findViewById(R.id.pickup_place);
         destPlace = findViewById(R.id.btn_destination);
+        fab = findViewById(R.id.fab);
+        fab_next = findViewById(R.id.fab_next);
+        locationButton =  findViewById(Integer.parseInt("2"));
 
         //LOADER
         loaderManager = getSupportLoaderManager();
@@ -125,6 +142,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         } else {
             loaderManager.restartLoader(ASYNCTASKLOADER_ID, loaderBundle, callback);
         }
+
+        //GET PROFILE DETAILS
+        getUserDetails();
+
+
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+//        LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+//        LocationProvider locationProvider = locationManager.getProvider(LocationManager.GPS_PROVIDER);
+//        final boolean gpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+
+        //if (!gpsEnabled) {
+         //       enableLocationSettings();
+        //}
+
 
 
 
@@ -150,8 +187,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         placeResponse.addOnCompleteListener(task -> {
             if (task.isSuccessful()){
                 FindCurrentPlaceResponse response = task.getResult();
-
-                //PlaceLikelihood myPlace = Collections.max(response.getPlaceLikelihoods(), Comparator.comparing(c -> c.getLikelihood())); // >API 24
                 PlaceLikelihood myPlace = response.getPlaceLikelihoods().get(0);
                 pickupPlace.setText(myPlace.getPlace().getAddress());
                 Log.w(TAG, String.format("Place '%s' has likelihood: %f",
@@ -168,41 +203,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
 
 
-
-
-        //GET PROFILE DETAILS
-        getUserDetails();
-
-
-        //Autosuggest Fragment
-        autoSuggest();
-
     }
 
-    private void autoSuggest() {
-        // Initialize the AutocompleteSupportFragment.
-        AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment)
-                getSupportFragmentManager().findFragmentById(R.id.autocomplete_fragment);
 
-        // Specify the types of place data to return.
-        autocompleteFragment.setPlaceFields(Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.ADDRESS));
 
-        // Set up a PlaceSelectionListener to handle the response.
-        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
-            @Override
-            public void onPlaceSelected(Place place) {
-                // TODO: Get info about the selected place.
-                Log.w(TAG, "Place: " + place.getName() + ", " + place.getId() + ", " + place.getAddress());
-            }
-
-            @Override
-            public void onError(Status status) {
-                // TODO: Handle the error.
-                Log.w(TAG, "An error occurred: " + status);
-            }
-        });
-
+    private void enableLocationSettings() {
+        Intent settingsIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+        startActivity(settingsIntent);
     }
+
+
 
     private void getUserDetails(){
 
@@ -233,7 +243,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
         CardView cardView = findViewById(R.id.map_menu);
-        cardView.setOnClickListener(this);
+        cardView    .setOnClickListener(this);
+        fab         .setOnClickListener(this);
+        fab_next    .setOnClickListener(this);
 
         View nav_header = navigationView.getHeaderView(0);
 
@@ -255,9 +267,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public void checkOut(View view) {
 
-        List<Place.Field> fields = Arrays.asList(Place.Field.ID, Place.Field.NAME);
+        List<Place.Field> fields = Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG, Place.Field.ADDRESS);
         Intent intent = new Autocomplete.IntentBuilder(
                 AutocompleteActivityMode.FULLSCREEN, fields)
+                .setCountry("RO") //Autodetect
+                .setTypeFilter(TypeFilter.ADDRESS)
                 .build(this);
         startActivityForResult(intent, AUTOCOMPLETE_REQUEST_CODE);
 
@@ -269,7 +283,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (requestCode == AUTOCOMPLETE_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
                 Place place = Autocomplete.getPlaceFromIntent(data);
-                destPlace.setText(place.getName());
+                Log.w(TAG, place.toString());
+                destPlace.setText(place.getAddress());
+                fab.setVisibility(View.GONE);
+                fab_next.setVisibility(View.VISIBLE);
+
+
+
             } else if (resultCode == AutocompleteActivity.RESULT_ERROR) {
                 // TODO: Handle the error.
                 Status status = Autocomplete.getStatusFromIntent(data);
@@ -289,57 +309,35 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      * it inside the SupportMapFragment. This method will only be triggered once the user has
      * installed Google Play services and returned to the app.
      */
+    @SuppressLint("MissingPermission")
     @Override
     public void onMapReady(GoogleMap googleMap) {
+
         mMap = googleMap;
+        mMap.getUiSettings().setCompassEnabled(false);
+        mMap.getUiSettings().setMapToolbarEnabled(false);
+
+        mMap.setMyLocationEnabled(true); //TODO: Handle permission
+        //mMap.getUiSettings().setZoomControlsEnabled(true);
+        if(locationButton != null) locationButton.setVisibility(View.GONE);
+
 
         getDeviceLocation();
 
 
-        //mMap.setMyLocationEnabled(true);
-        mMap.setOnMyLocationChangeListener(new GoogleMap.OnMyLocationChangeListener() {
-            @Override
-            public void onMyLocationChange(Location location) {
-                LatLng ll = new LatLng(location.getLatitude(), location.getLongitude());
-                //addPointToViewPort(ll);
-                // we only want to grab the location once, to allow the user to pan and zoom freely.
-                mMap.setOnMyLocationChangeListener(null);
-            }
+        //MOVED IN BACKGOUDN TASK
+        mMap.setOnCameraIdleListener(() -> {
+            LatLng latLng=mMap.getCameraPosition().target;
+            Log.w(TAG, "idle at" + latLng.toString());
+            loaderBundle.putDouble("lat", latLng.latitude);
+            loaderBundle.putDouble("long", latLng.longitude);
+            loaderManager.restartLoader(ASYNCTASKLOADER_ID, loaderBundle, callback);
+
         });
 
-
-        //MOVE TO a TASK
-        mMap.setOnCameraIdleListener(new GoogleMap.OnCameraIdleListener() {
-            @Override
-            public void onCameraIdle() {
-                LatLng latLng=mMap.getCameraPosition().target;
-                Log.w(TAG, "idle at" + latLng.toString());
-
-                loaderBundle.putDouble("lat", latLng.latitude);
-                loaderBundle.putDouble("long", latLng.longitude);
-
-                //Log.w(TAG,"reinit loader");
-                loaderManager.restartLoader(ASYNCTASKLOADER_ID, loaderBundle, callback);
-
-            }
-        });
-
-        mMap.setOnCameraMoveStartedListener(new GoogleMap.OnCameraMoveStartedListener() {
-            @Override
-            public void onCameraMoveStarted(int i) {
-                pickupPlace.setText("Searching address...");
-            }
-        });
-
+        mMap.setOnCameraMoveStartedListener(i -> pickupPlace.setText("Searching address..."));
 
     }
-
-//    private void addPointToViewPort(LatLng newPoint) {
-//        mBounds.include(newPoint);
-//        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(mBounds.build(),
-//                findViewById(R.id.pickup).getHeight() ) );
-//    }
-
 
     @Override
     public void onClick(View v) {
@@ -349,14 +347,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 break;
             case R.id.btn_destination:
                 Log.w(TAG, "Destination");
-
                 break;
-            // ...
+            case R.id.fab_next:
+                goConfirm();
+                break;
+            case R.id.fab:
+                if(mMap != null && locationButton != null) locationButton.callOnClick();
+                break;
         }
     }
 
     private void signOut() {
-
 
         FirebaseAuth.getInstance().signOut();
         Intent intent = new Intent(getBaseContext(), LoginActivity.class);
@@ -364,9 +365,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 Intent.FLAG_ACTIVITY_CLEAR_TASK |
                                 Intent.FLAG_ACTIVITY_NEW_TASK);
                         startActivity(intent);
+    }
 
-
-
+    private void goConfirm(){
+        Intent intent = new Intent(this, ConfirmationActivity.class);
+        //intent.putExtra(MOVIE_EXTRA, movieList.get(position));
+        startActivity(intent);
     }
 
 
@@ -414,10 +418,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     private void getDeviceLocation() {
-        /*
-         * Get the best and most recent location of the device, which may be null in rare
-         * cases when a location is not available.
-         */
+
         try {
             if (mLocationPermissionGranted) {
                 mFusedLocationProviderClient.getLastLocation().addOnSuccessListener(
@@ -425,15 +426,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             @Override
                             public void onSuccess(Location location) {
                                 if (location != null) {
-
                                     mLastKnownLocation = location;
-//                                    mMap.addMarker(new MarkerOptions().position(
-//                                            new LatLng(mLastKnownLocation.getLatitude(),
-//                                                    mLastKnownLocation.getLongitude())
-//                                    ).title("My location"));
-
-                                    mMap.setMyLocationEnabled(true);
-
 
                                     mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                                             new LatLng(mLastKnownLocation.getLatitude(),
@@ -478,7 +471,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
 
-        //Loader methods
+        //LOADER INTERFACE METHODS
         @NonNull
         @Override
         public Loader<Bundle> onCreateLoader(int id, @Nullable Bundle args) {
@@ -494,6 +487,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                Address myAddress = data.getParcelable("address");
 
                pickupPlace.setText(myAddress.getAddressLine(0).toString());
+
             }
 
         }

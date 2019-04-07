@@ -327,11 +327,7 @@ public class RegistrationActivity extends AppCompatActivity implements LoaderCal
 
     private void goBack() {
 
-        Intent intent = new Intent(getBaseContext(), LoginActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP |
-                Intent.FLAG_ACTIVITY_CLEAR_TASK |
-                Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
+        finish();
 
     }
 

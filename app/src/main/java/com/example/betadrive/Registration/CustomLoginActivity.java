@@ -99,25 +99,26 @@ public class CustomLoginActivity extends AppCompatActivity implements LoaderCall
             }
         });
 
-        Button mEmailSignInButton = findViewById(R.id.email_sign_in_button);
-        mEmailSignInButton.setOnClickListener(this);
+
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
 
+        Button mEmailSignInButton = findViewById(R.id.email_sign_in_button);
+        mEmailSignInButton.setOnClickListener(this);
+
         ImageView mBackButton = findViewById(R.id.backbutton);
         mBackButton.setOnClickListener(this);
+
+        TextView resetButton = findViewById(R.id.reset_password);
+        resetButton.setOnClickListener(this);
 
 
     }
 
     private void goBack() {
 
-        Intent intent = new Intent(getBaseContext(), LoginActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP |
-                Intent.FLAG_ACTIVITY_CLEAR_TASK |
-                Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
+        finish();
 
     }
 
@@ -130,8 +131,17 @@ public class CustomLoginActivity extends AppCompatActivity implements LoaderCall
             case R.id.email_sign_in_button:
                 attemptLogin();
                 break;
-
+            case R.id.reset_password:
+                onReset();
+                break;
         }
+
+    }
+
+    private void onReset(){
+
+        Intent intent = new Intent(this, ResetPasswordActivity.class);
+        startActivity(intent);
 
     }
 

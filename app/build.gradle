@@ -33,18 +33,18 @@ configurations.all {
 
 dependencies {
 
-    def work_version  = '2.0.0'
-    def places_api_v  = '1.0.0'
+    def work_version = '2.0.0'
+    def places_api_v = '1.0.0'
     def play_serv_aut = '16.0.1'
     def play_serv_loc = '16.0.0'
     def play_serv_map = '16.1.0'
     def firebase_auth = '16.2.0'
     def firebase_core = '16.0.8'
-    def picasso_v     = '2.71828'
+    def picasso_v = '2.71828'
 
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'androidx.appcompat:appcompat:1.1.0-alpha03'
-            ''
+    ''
     implementation 'com.google.android.material:material:1.1.0-alpha05'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
 
