@@ -25,6 +25,7 @@ import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GetTokenResult;
 import com.google.firebase.auth.GoogleAuthProvider;
 
 import androidx.annotation.NonNull;
@@ -212,8 +213,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     , account.getDisplayName()
                     , account.getEmail()
                     , String.valueOf(account.getPhotoUrl())
-                    , String.valueOf(account.getIdToken(false))
+                    , "" //this is a task
             );
+
             Bundle message = new Bundle();
             message.putParcelable("account", loginAccount);
 

@@ -15,15 +15,10 @@ import com.example.betadrive.R;
 
 public class PinPoint extends RelativeLayout {
 
-    //public OnDragListener mOnDragListener = null;
     private ImageView mMarkImageView = null;
     private View mShadowView = null;
     RelativeLayout.LayoutParams params = null;
 
-//    interface OnDragListener {
-//        public void onDragStart();
-//        public void onDragEnd();
-//    }
 
     public PinPoint(Context context) {
         super(context);
@@ -110,8 +105,4 @@ public class PinPoint extends RelativeLayout {
         }
         return super.dispatchTouchEvent(ev);
     }
-//
-//    public void setmOnDragListener(OnDragListener mOnDragListener) {
-//        this.mOnDragListener = mOnDragListener;
-//    }
 }

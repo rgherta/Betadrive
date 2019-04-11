@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 
 import androidx.annotation.NonNull;
 
+import com.example.betadrive.DataModels.AccountContract;
 import com.example.betadrive.LoginActivity;
 import com.example.betadrive.MapsActivity;
 import com.example.betadrive.R;
@@ -47,26 +48,9 @@ import java.util.List;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
-/**
- * A login screen that offers login via email/password.
- */
 public class CustomLoginActivity extends AppCompatActivity implements LoaderCallbacks<Cursor>, View.OnClickListener {
 
-    /**
-     * Id to identity READ_CONTACTS permission request.
-     */
     private static final int REQUEST_READ_CONTACTS = 0;
-
-    /**
-     * A dummy authentication store containing known user names and passwords.
-     * TODO: remove after connecting to a real authentication system.
-     */
-    private static final String[] DUMMY_CREDENTIALS = new String[]{
-            "foo@example.com:hello", "bar@example.com:world"
-    };
-    /**
-     * Keep track of the login task to ensure we can cancel it if requested.
-     */
     private UserLoginTask mAuthTask = null;
 
     // UI references.
@@ -82,24 +66,17 @@ public class CustomLoginActivity extends AppCompatActivity implements LoaderCall
         setContentView(R.layout.activity_custom_login);
 
         auth = FirebaseAuth.getInstance();
-        //setupActionBar();
-        // Set up the login form.
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
         populateAutoComplete();
 
         mPasswordView = (EditText) findViewById(R.id.password);
-        mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
-                if (id == EditorInfo.IME_ACTION_DONE || id == EditorInfo.IME_NULL) {
-                    attemptLogin();
-                    return true;
-                }
-                return false;
+        mPasswordView.setOnEditorActionListener((textView, id, keyEvent) -> {
+            if (id == EditorInfo.IME_ACTION_DONE || id == EditorInfo.IME_NULL) {
+                attemptLogin();
+                return true;
             }
+            return false;
         });
-
-
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
@@ -112,7 +89,6 @@ public class CustomLoginActivity extends AppCompatActivity implements LoaderCall
 
         TextView resetButton = findViewById(R.id.reset_password);
         resetButton.setOnClickListener(this);
-
 
     }
 
@@ -163,13 +139,7 @@ public class CustomLoginActivity extends AppCompatActivity implements LoaderCall
         }
         if (shouldShowRequestPermissionRationale(READ_CONTACTS)) {
             Snackbar.make(mEmailView, R.string.permission_rationale, Snackbar.LENGTH_INDEFINITE)
-                    .setAction(android.R.string.ok, new View.OnClickListener() {
-                        @Override
-                        @TargetApi(Build.VERSION_CODES.M)
-                        public void onClick(View v) {
-                            requestPermissions(new String[]{READ_CONTACTS}, REQUEST_READ_CONTACTS);
-                        }
-                    });
+                    .setAction(android.R.string.ok, v -> requestPermissions(new String[]{READ_CONTACTS}, REQUEST_READ_CONTACTS));
         } else {
             requestPermissions(new String[]{READ_CONTACTS}, REQUEST_READ_CONTACTS);
         }
@@ -240,49 +210,42 @@ public class CustomLoginActivity extends AppCompatActivity implements LoaderCall
         }
 
         if (cancel) {
-            // There was an error; don't attempt login and focus the first
-            // form field with an error.
             focusView.requestFocus();
         } else {
-            // Show a progress spinner, and kick off a background task to
-            // perform the user login attempt.
             showProgress(true);
-//            mAuthTask = new UserLoginTask(email, password);
-//            mAuthTask.execute((Void) null);
 
 
             auth.signInWithEmailAndPassword(email, password)
-                    .addOnCompleteListener(CustomLoginActivity.this, new OnCompleteListener<AuthResult>() {
-                        @Override
-                        public void onComplete(@NonNull Task<AuthResult> task) {
-                            // If sign in fails, display a message to the user. If sign in succeeds
-                            // the auth state listener will be notified and logic to handle the
-                            // signed in user can be handled in the listener.
-                            showProgress(false);
-                            if (!task.isSuccessful()) {
-                                // there was an error
-                                if (password.length() < 6) {
-                                    //inputPassword.setError(getString(R.string.minimum_password));
-                                    Toast.makeText(CustomLoginActivity.this, getString(R.string.pass_length), Toast.LENGTH_LONG).show();
-                                } else {
-                                    Toast.makeText(CustomLoginActivity.this, getString(R.string.auth_failed), Toast.LENGTH_LONG).show();
-                                }
+                    .addOnCompleteListener(CustomLoginActivity.this, task -> {
+                        showProgress(false);
+                        if (!task.isSuccessful()) {
+                            // there was an error
+                            if (password.length() < 6) {
+
+                                Toast.makeText(CustomLoginActivity.this, getString(R.string.pass_length), Toast.LENGTH_LONG).show();
                             } else {
-
-                                Bundle message = new Bundle();
-                                message.putString(getString(R.string.user_id), "none" );
-                                message.putString(getString(R.string.full_name), "Full Name");
-                                message.putString(getString(R.string.user_email), auth.getCurrentUser().getEmail() );
-                                message.putString(getString(R.string.user_photo), "anon" );
-                                message.putString(getString(R.string.user_token), "none" );
-
-
-                                Intent intent = new Intent(CustomLoginActivity.this, MapsActivity.class);
-                                intent.putExtras(message);
-                                startActivity(intent);
-                                finish();
+                                Toast.makeText(CustomLoginActivity.this, getString(R.string.auth_failed), Toast.LENGTH_LONG).show();
                             }
-                        };
+                        } else {
+
+
+                            AccountContract loginAccount = new AccountContract(
+                                    "none"
+                                    , "Full Name"
+                                    , auth.getCurrentUser().getEmail()
+                                    , "anon"
+                                    , "none"
+                            );
+
+
+                            Bundle nMessage = new Bundle();
+                            nMessage.putParcelable("account", loginAccount);
+
+                            Intent intent = new Intent(this, MapsActivity.class);
+                            intent.putExtras(nMessage);
+                            startActivity(intent);
+                            finish();
+                        }
                     });
 
         }
@@ -303,9 +266,6 @@ public class CustomLoginActivity extends AppCompatActivity implements LoaderCall
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
     private void showProgress(final boolean show) {
-        // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
-        // for very easy animations. If available, use these APIs to fade-in
-        // the progress spinner.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
             int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
@@ -327,8 +287,6 @@ public class CustomLoginActivity extends AppCompatActivity implements LoaderCall
                 }
             });
         } else {
-            // The ViewPropertyAnimator APIs are not available, so simply show
-            // and hide the relevant UI components.
             mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
             mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
         }
@@ -341,13 +299,10 @@ public class CustomLoginActivity extends AppCompatActivity implements LoaderCall
                 Uri.withAppendedPath(ContactsContract.Profile.CONTENT_URI,
                         ContactsContract.Contacts.Data.CONTENT_DIRECTORY), ProfileQuery.PROJECTION,
 
-                // Select only email addresses.
                 ContactsContract.Contacts.Data.MIMETYPE +
                         " = ?", new String[]{ContactsContract.CommonDataKinds.Email
                 .CONTENT_ITEM_TYPE},
 
-                // Show primary email addresses first. Note that there won't be
-                // a primary email address if the user hasn't specified one.
                 ContactsContract.Contacts.Data.IS_PRIMARY + " DESC");
     }
 
@@ -369,7 +324,6 @@ public class CustomLoginActivity extends AppCompatActivity implements LoaderCall
     }
 
     private void addEmailsToAutoComplete(List<String> emailAddressCollection) {
-        //Create adapter to tell the AutoCompleteTextView what to show in its dropdown list.
         ArrayAdapter<String> adapter =
                 new ArrayAdapter<>(CustomLoginActivity.this,
                         android.R.layout.simple_dropdown_item_1line, emailAddressCollection);
@@ -408,40 +362,6 @@ public class CustomLoginActivity extends AppCompatActivity implements LoaderCall
         protected Boolean doInBackground(Void... params) {
 
             // TODO: log into new account here.
-/*            auth.signInWithEmailAndPassword(mEmail, mPassword)
-                    .addOnCompleteListener(CustomLoginActivity.this, new OnCompleteListener<AuthResult>() {
-                        @Override
-                        public void onComplete(@NonNull Task<AuthResult> task) {
-                            // If sign in fails, display a message to the user. If sign in succeeds
-                            // the auth state listener will be notified and logic to handle the
-                            // signed in user can be handled in the listener.
-                            showProgress(false);
-                            if (!task.isSuccessful()) {
-                                // there was an error
-                                if (mPassword.length() < 6) {
-                                    //inputPassword.setError(getString(R.string.minimum_password));
-                                    Toast.makeText(CustomLoginActivity.this, getString(R.string.pass_length), Toast.LENGTH_LONG).show();
-                                } else {
-                                    Toast.makeText(CustomLoginActivity.this, getString(R.string.auth_failed), Toast.LENGTH_LONG).show();
-                                }
-                            } else {
-
-                                Bundle message = new Bundle();
-                                message.putString(getString(R.string.user_id), auth.getCurrentUser().getUid() );
-                                message.putString(getString(R.string.full_name), auth.getCurrentUser().getDisplayName() );
-                                message.putString(getString(R.string.user_email), auth.getCurrentUser().getEmail() );
-                                message.putString(getString(R.string.user_photo), auth.getCurrentUser().getPhotoUrl().toString() );
-                                message.putString(getString(R.string.user_token), auth.getCurrentUser().getIdToken(false).toString() );
-
-
-                                Intent intent = new Intent(CustomLoginActivity.this, MapsActivity.class);
-                                intent.putExtras(message);
-                                startActivity(intent);
-                                finish();
-                            }
-                        };
-                    });*/
-
 
             return true;
         }
@@ -452,11 +372,15 @@ public class CustomLoginActivity extends AppCompatActivity implements LoaderCall
             showProgress(false);
 
             if (success) {
+
                 finish();
+
             } else {
                 mPasswordView.setError(getString(R.string.error_incorrect_password));
                 mPasswordView.requestFocus();
             }
+
+
         }
 
         @Override
@@ -464,6 +388,12 @@ public class CustomLoginActivity extends AppCompatActivity implements LoaderCall
             mAuthTask = null;
             showProgress(false);
         }
+
+
     }
+
+
+
+
 }
 

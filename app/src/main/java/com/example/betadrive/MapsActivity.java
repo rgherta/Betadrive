@@ -2,12 +2,9 @@ package com.example.betadrive;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.StringRes;
 import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
-import androidx.core.app.BundleCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.content.PermissionChecker;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentActivity;
@@ -15,21 +12,13 @@ import androidx.loader.app.LoaderManager;
 import androidx.loader.content.Loader;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.location.Address;
-import android.location.Criteria;
-import android.location.Geocoder;
 import android.location.Location;
-import android.location.LocationManager;
-import android.location.LocationProvider;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -65,15 +54,12 @@ import com.google.android.libraries.places.api.net.FindCurrentPlaceResponse;
 import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.android.libraries.places.widget.Autocomplete;
 import com.google.android.libraries.places.widget.AutocompleteActivity;
-import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
-import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.squareup.picasso.Picasso;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -112,11 +98,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Bundle loaderBundle = new Bundle();
 
     //View
-    private TextView                pickupPlace;
-    private TextView                destPlace;
+    private TextView                pickupPlaceView;
+    private TextView                destPlaceView;
     private FloatingActionButton    fab;
     private FloatingActionButton    fab_next;
     private View                    locationButton;
+
+    private Address                 pickupAddress;
+    private Address                 destAddress;
 
 
 
@@ -127,11 +116,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
         //RESOURCES & VIEWS
-        pickupPlace = findViewById(R.id.pickup_place);
-        destPlace = findViewById(R.id.btn_destination);
+        pickupPlaceView = findViewById(R.id.pickup_place);
+        destPlaceView = findViewById(R.id.btn_destination);
+
         fab = findViewById(R.id.fab);
         fab_next = findViewById(R.id.fab_next);
         locationButton =  findViewById(Integer.parseInt("2"));
+
+        pickupAddress   = new Address(getResources().getConfiguration().locale);
+        destAddress     = new Address(getResources().getConfiguration().locale);
 
         //LOADER
         loaderManager = getSupportLoaderManager();
@@ -179,7 +172,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Places.initialize(getApplicationContext(), getString(R.string.google_maps_key));
         placesClient = Places.createClient(this);
 
-        List<Place.Field> placeFields = Arrays.asList(Place.Field.NAME, Place.Field.ADDRESS);
+        List<Place.Field> placeFields = Arrays.asList(Place.Field.NAME, Place.Field.ADDRESS, Place.Field.LAT_LNG ); //Place.Field.ID
         FindCurrentPlaceRequest request =  FindCurrentPlaceRequest.builder(placeFields).build();
 
         @SuppressLint("MissingPermission")
@@ -188,10 +181,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             if (task.isSuccessful()){
                 FindCurrentPlaceResponse response = task.getResult();
                 PlaceLikelihood myPlace = response.getPlaceLikelihoods().get(0);
-                pickupPlace.setText(myPlace.getPlace().getAddress());
-                Log.w(TAG, String.format("Place '%s' has likelihood: %f",
-                        myPlace.getPlace().getAddress(),
-                        myPlace.getLikelihood()));
+                pickupPlaceView.setText(myPlace.getPlace().getAddress());
+                Log.w(TAG, "Place likelihood is " + myPlace.toString() );
 
             } else {
                 Exception exception = task.getException();
@@ -222,15 +213,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         Log.w(TAG, account.toString());
 
-
         drawerLayout = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(
                 menuItem -> {
-                    // set item as selected to persist highlight
+
                     menuItem.setChecked(true);
-                    // close drawer when item is tapped
-                    //drawerLayout.closeDrawers();
 
                     switch (menuItem.getItemId()) {
                         case R.id.signout:
@@ -275,7 +263,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .build(this);
         startActivityForResult(intent, AUTOCOMPLETE_REQUEST_CODE);
 
-
     }
 
     @Override
@@ -284,11 +271,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             if (resultCode == RESULT_OK) {
                 Place place = Autocomplete.getPlaceFromIntent(data);
                 Log.w(TAG, place.toString());
-                destPlace.setText(place.getAddress());
+                destPlaceView.setText(place.getAddress());
                 fab.setVisibility(View.GONE);
                 fab_next.setVisibility(View.VISIBLE);
 
-
+                destAddress.setAddressLine(0,place.getAddress());
+                destAddress.setLatitude(place.getLatLng().latitude);
+                destAddress.setLongitude(place.getLatLng().longitude);
 
             } else if (resultCode == AutocompleteActivity.RESULT_ERROR) {
                 // TODO: Handle the error.
@@ -325,7 +314,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         getDeviceLocation();
 
 
-        //MOVED IN BACKGOUDN TASK
+        //MOVED IN BACKGROUND TASK
         mMap.setOnCameraIdleListener(() -> {
             LatLng latLng=mMap.getCameraPosition().target;
             Log.w(TAG, "idle at" + latLng.toString());
@@ -335,7 +324,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         });
 
-        mMap.setOnCameraMoveStartedListener(i -> pickupPlace.setText("Searching address..."));
+        mMap.setOnCameraMoveStartedListener(i -> pickupPlaceView.setText("Searching address..."));
 
     }
 
@@ -369,7 +358,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void goConfirm(){
         Intent intent = new Intent(this, ConfirmationActivity.class);
-        //intent.putExtra(MOVIE_EXTRA, movieList.get(position));
+        Bundle bundle = new Bundle();
+        bundle.putParcelable("pickupAddress", pickupAddress);
+        bundle.putParcelable("destAddress", destAddress);
+        intent.putExtra("confirm", bundle);
         startActivity(intent);
     }
 
@@ -421,45 +413,40 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         try {
             if (mLocationPermissionGranted) {
-                mFusedLocationProviderClient.getLastLocation().addOnSuccessListener(
-                        new OnSuccessListener<Location>() {
-                            @Override
-                            public void onSuccess(Location location) {
-                                if (location != null) {
-                                    mLastKnownLocation = location;
+                mFusedLocationProviderClient.getLastLocation().addOnSuccessListener( location -> {
+                            if (location != null) {
+                                mLastKnownLocation = location;
 
-                                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                                            new LatLng(mLastKnownLocation.getLatitude(),
-                                                    mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
+                                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                                        new LatLng(mLastKnownLocation.getLatitude(),
+                                                mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
 
 
-                                    SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                                            .findFragmentById(R.id.map);
-                                    View mapView = mapFragment.getView();
+                                SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                                        .findFragmentById(R.id.map);
+                                View mapView = mapFragment.getView();
 
 
-                                    View locationButton = ((View) mapView.findViewById(Integer.parseInt("1")).getParent()).findViewById(Integer.parseInt("2"));
-                                    RelativeLayout.LayoutParams rlp = (RelativeLayout.LayoutParams) locationButton.getLayoutParams();
-                                    // position on right bottom
-                                    int[] ruleList = rlp.getRules();
-                                    for (int i = 0; i < ruleList.length; i ++) {
-                                        rlp.removeRule(i);
-                                    }
-                                    //rlp.addRule(RelativeLayout.ALIGN_BOTTOM, RelativeLayout.TRUE);
-                                    //rlp.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
-                                    locationButton.setPadding(30,0,0,0);
+                                View locationButton = ((View) mapView.findViewById(Integer.parseInt("1")).getParent()).findViewById(Integer.parseInt("2"));
+                                RelativeLayout.LayoutParams rlp = (RelativeLayout.LayoutParams) locationButton.getLayoutParams();
+                                // position on right bottom
+                                int[] ruleList = rlp.getRules();
+                                for (int i = 0; i < ruleList.length; i ++) {
+                                    rlp.removeRule(i);
+                                }
+                                //rlp.addRule(RelativeLayout.ALIGN_BOTTOM, RelativeLayout.TRUE);
+                                //rlp.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
+                                //locationButton.setPadding(30,0,0,0);
 
 
-                                } else {
-                                    Log.w("maps", "Current location is null. Using defaults.");
-                                    Log.w("maps", "Exception: %s");
-                                    //mMap.addMarker(new MarkerOptions().position(mDefaultLocation).title("Default Location"));
-                                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
-                                    mMap.getUiSettings().setMyLocationButtonEnabled(false);
+                            } else {
+                                Log.w("maps", "Current location is null. Using defaults.");
+                                Log.w("maps", "Exception: %s");
+                                //mMap.addMarker(new MarkerOptions().position(mDefaultLocation).title("Default Location"));
+                                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mDefaultLocation, DEFAULT_ZOOM));
+                                mMap.getUiSettings().setMyLocationButtonEnabled(false);
 
-                                };
-
-                            }
+                            };
 
                         });
             }
@@ -472,6 +459,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
         //LOADER INTERFACE METHODS
+
         @NonNull
         @Override
         public Loader<Bundle> onCreateLoader(int id, @Nullable Bundle args) {
@@ -484,9 +472,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         public void onLoadFinished(@NonNull Loader<Bundle> loader, Bundle data) {
 
             if(data != null){
-               Address myAddress = data.getParcelable("address");
-
-               pickupPlace.setText(myAddress.getAddressLine(0).toString());
+               pickupAddress = data.getParcelable("address");
+               pickupPlaceView.setText(pickupAddress.getAddressLine(0));
 
             }
 

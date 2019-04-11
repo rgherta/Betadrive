@@ -48,8 +48,7 @@ public class GeocoderLoader extends AsyncTaskLoader<Bundle> {
             List<Address> addressList=geocoder.getFromLocation(latLng.latitude,latLng.longitude,1);
             if (addressList != null && addressList.size() > 0) {
                 Address address = addressList.get(0);
-                Log.w(TAG, address.toString())
-;
+                Log.w(TAG, address.toString());
                 result = new Bundle();
                 result.putParcelable("address", address);
 

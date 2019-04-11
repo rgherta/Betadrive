@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 
 import androidx.annotation.NonNull;
 
+import com.example.betadrive.DataModels.AccountContract;
 import com.example.betadrive.LoginActivity;
 import com.example.betadrive.MapsActivity;
 import com.example.betadrive.R;
@@ -401,19 +402,21 @@ public class RegistrationActivity extends AppCompatActivity implements LoaderCal
                 EditText mName = findViewById(R.id.name);
                 EditText mEmail = findViewById(R.id.email);
 
-                Bundle message = new Bundle();
-                message.putString(getString(R.string.user_id), "none" );
-                message.putString(getString(R.string.full_name), mName.getText().toString());
-                message.putString(getString(R.string.user_email), mEmail.getText().toString());
-                message.putString(getString(R.string.user_photo), "anon" );
-                message.putString(getString(R.string.user_token), "none" );
+                AccountContract loginAccount = new AccountContract(
+                        "none"
+                        , mName.getText().toString()
+                        , mEmail.getText().toString()
+                        , "anon"
+                        , "none"
+                );
 
 
-                Intent intent = new Intent(RegistrationActivity.this, MapsActivity.class);
-                intent.putExtras(message);
+                Bundle nMessage = new Bundle();
+                nMessage.putParcelable("account", loginAccount);
+
+                Intent intent = new Intent(getBaseContext(), MapsActivity.class);
+                intent.putExtras(nMessage);
                 startActivity(intent);
-
-
                 finish();
             } else {
                 showProgress(false);
