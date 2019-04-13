@@ -20,7 +20,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.NoActionBar">
-        <activity android:name=".Registration.ResetPasswordActivity"></activity>
+        <activity android:name=".ResponseActivity"></activity>
+        <activity android:name=".Registration.ResetPasswordActivity" />
         <activity android:name=".ConfirmationActivity" />
         <activity
             android:name=".Registration.CustomLoginActivity"

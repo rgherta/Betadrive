@@ -305,6 +305,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
         mMap.getUiSettings().setCompassEnabled(false);
         mMap.getUiSettings().setMapToolbarEnabled(false);
+        mMap.getUiSettings().setRotateGesturesEnabled(false);
 
         mMap.setMyLocationEnabled(true); //TODO: Handle permission
         //mMap.getUiSettings().setZoomControlsEnabled(true);
@@ -358,10 +359,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void goConfirm(){
         Intent intent = new Intent(this, ConfirmationActivity.class);
-        Bundle bundle = new Bundle();
-        bundle.putParcelable("pickupAddress", pickupAddress);
-        bundle.putParcelable("destAddress", destAddress);
-        intent.putExtra("confirm", bundle);
+        intent.putExtra("pickupAddress", pickupAddress);
+        intent.putExtra("destAddress", destAddress);
         startActivity(intent);
     }
 
