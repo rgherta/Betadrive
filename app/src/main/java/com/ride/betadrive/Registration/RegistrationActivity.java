@@ -1,4 +1,4 @@
-package com.example.betadrive.Registration;
+package com.ride.betadrive.Registration;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -8,10 +8,9 @@ import android.content.pm.PackageManager;
 
 import androidx.annotation.NonNull;
 
-import com.example.betadrive.DataModels.AccountContract;
-import com.example.betadrive.LoginActivity;
-import com.example.betadrive.MapsActivity;
-import com.example.betadrive.R;
+import com.ride.betadrive.DataModels.AccountContract;
+import com.ride.betadrive.MapsActivity;
+import com.ride.betadrive.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;

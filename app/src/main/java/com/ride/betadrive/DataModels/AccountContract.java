@@ -1,4 +1,4 @@
-package com.example.betadrive.DataModels;
+package com.ride.betadrive.DataModels;
 
 import android.os.Parcel;
 import android.os.Parcelable;

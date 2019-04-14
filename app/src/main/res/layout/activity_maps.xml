@@ -32,7 +32,7 @@
 
 
 
-            <com.example.betadrive.CustomViews.PinPoint
+            <com.ride.betadrive.CustomViews.PinPoint
                 android:id="@+id/map_wrapper"
                 android:layout_width="wrap_content"
                 android:layout_height="0dp"
@@ -52,7 +52,7 @@
 
                     />
 
-            </com.example.betadrive.CustomViews.PinPoint>
+            </com.ride.betadrive.CustomViews.PinPoint>
 
 
 

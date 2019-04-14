@@ -1,4 +1,4 @@
-package com.example.betadrive.CustomViews;
+package com.ride.betadrive.CustomViews;
 
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
@@ -10,7 +10,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
-import com.example.betadrive.R;
+import com.ride.betadrive.R;
 
 
 public class PinPoint extends RelativeLayout {

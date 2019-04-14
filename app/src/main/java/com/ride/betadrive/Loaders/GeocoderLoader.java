@@ -1,4 +1,4 @@
-package com.example.betadrive.Loaders;
+package com.ride.betadrive.Loaders;
 
 import android.content.Context;
 import android.location.Address;

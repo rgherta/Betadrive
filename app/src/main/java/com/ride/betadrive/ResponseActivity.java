@@ -1,6 +1,5 @@
-package com.example.betadrive;
+package com.ride.betadrive;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
@@ -11,28 +10,16 @@ import android.widget.TextView;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-import com.example.betadrive.Utils.NetworkUtils;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
+import com.ride.betadrive.Utils.NetworkUtils;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.GetTokenResult;
-import com.google.maps.android.PolyUtil;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.URL;
-import java.util.List;
 
 
 public class ResponseActivity extends AppCompatActivity {
@@ -77,7 +64,7 @@ public class ResponseActivity extends AppCompatActivity {
                 Log.w(TAG,"Token found single thread after force refresh "+task.getResult().getToken());
                 //response.setText(task.getResult().getToken());
                 String token = task.getResult().getToken();
-                mRequest = createRequest(pickupAddress, destAddress, payment, token );
+                mRequest = createRequest(pickupAddress, destAddress, payment, token);
                 URL hailUrl = NetworkUtils.buildHailUrl("api", "hail");
                 queue.add( makeJsonRequest(Request.Method.POST, hailUrl, mRequest) );
 
@@ -127,6 +114,7 @@ public class ResponseActivity extends AppCompatActivity {
                                     , response -> mResponse.setText("Response: " + response.toString())
                , error -> {
                    // TODO: Handle error
+                    mResponse.setText("Response: " + error.toString());
                    Log.w(TAG, "Json request error");
 
                });

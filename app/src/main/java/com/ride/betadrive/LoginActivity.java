@@ -1,8 +1,8 @@
-package com.example.betadrive;
+package com.ride.betadrive;
 
-import com.example.betadrive.DataModels.AccountContract;
-import com.example.betadrive.Registration.CustomLoginActivity;
-import com.example.betadrive.Registration.RegistrationActivity;
+import com.ride.betadrive.DataModels.AccountContract;
+import com.ride.betadrive.Registration.CustomLoginActivity;
+import com.ride.betadrive.Registration.RegistrationActivity;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -25,7 +25,6 @@ import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.GetTokenResult;
 import com.google.firebase.auth.GoogleAuthProvider;
 
 import androidx.annotation.NonNull;
@@ -48,7 +47,7 @@ import android.widget.Toast;
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final String TAG = "login:";
-    public static final String EXTRA_MESSAGE = "com.example.betadrive.MESSAGE";
+    public static final String EXTRA_MESSAGE = "com.ride.betadrive.MESSAGE";
     private int RC_SIGN_IN=0;
     private GoogleSignInClient mGoogleSignInClient;
     private FirebaseAuth mAuth;

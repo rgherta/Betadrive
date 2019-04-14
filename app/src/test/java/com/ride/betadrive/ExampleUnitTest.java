@@ -1,4 +1,4 @@
-package com.example.betadrive;
+package com.ride.betadrive;
 
 import org.junit.Test;
 

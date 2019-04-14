@@ -1,4 +1,4 @@
-package com.example.betadrive;
+package com.ride.betadrive;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -25,8 +25,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 
-import com.example.betadrive.DataModels.AccountContract;
-import com.example.betadrive.Loaders.GeocoderLoader;
+import com.ride.betadrive.DataModels.AccountContract;
+import com.ride.betadrive.Loaders.GeocoderLoader;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.GoogleApiClient;
 
@@ -40,7 +40,6 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.tasks.OnSuccessListener;
 
 import com.google.android.gms.tasks.Task;
 import com.google.android.libraries.places.api.Places;
