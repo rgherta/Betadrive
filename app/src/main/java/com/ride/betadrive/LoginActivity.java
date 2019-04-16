@@ -46,8 +46,7 @@ import android.widget.Toast;
  */
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private static final String TAG = "login:";
-    public static final String EXTRA_MESSAGE = "com.ride.betadrive.MESSAGE";
+    private static final String TAG = LoginActivity.class.getSimpleName();
     private int RC_SIGN_IN=0;
     private GoogleSignInClient mGoogleSignInClient;
     private FirebaseAuth mAuth;
@@ -207,19 +206,19 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         if(account != null){
 
-            AccountContract loginAccount = new AccountContract(
-                    account.getUid()
-                    , account.getDisplayName()
-                    , account.getEmail()
-                    , String.valueOf(account.getPhotoUrl())
-                    , "" //this is a task
-            );
-
-            Bundle message = new Bundle();
-            message.putParcelable("account", loginAccount);
+//            AccountContract loginAccount = new AccountContract(
+//                    account.getUid()
+//                    , account.getDisplayName()
+//                    , account.getEmail()
+//                    , String.valueOf(account.getPhotoUrl())
+//                    , "" //this is a task
+//            );
+//
+//            Bundle message = new Bundle();
+//            message.putParcelable("account", loginAccount);
 
             Intent intent = new Intent(this, MapsActivity.class);
-            intent.putExtras(message);
+            //intent.putExtras(message);
             startActivity(intent);
 
         }

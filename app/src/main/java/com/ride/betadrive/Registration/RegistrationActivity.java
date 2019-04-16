@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 
 import androidx.annotation.NonNull;
 
+import com.android.volley.RequestQueue;
 import com.ride.betadrive.DataModels.AccountContract;
 import com.ride.betadrive.MapsActivity;
 import com.ride.betadrive.R;
@@ -56,6 +57,7 @@ public class RegistrationActivity extends AppCompatActivity implements LoaderCal
      * Id to identity READ_CONTACTS permission request.
      */
     private static final int REQUEST_READ_CONTACTS = 0;
+    private static final String TAG = RegistrationActivity.class.getSimpleName();
 
     /**
      * A dummy authentication store containing known user names and passwords.
@@ -76,12 +78,10 @@ public class RegistrationActivity extends AppCompatActivity implements LoaderCal
     private View mLoginFormView;
     private FirebaseAuth auth;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        //setupActionBar();
-
         setContentView(R.layout.activity_registration);
 
         auth = FirebaseAuth.getInstance();
@@ -400,29 +400,39 @@ public class RegistrationActivity extends AppCompatActivity implements LoaderCal
 
                 EditText mName = findViewById(R.id.name);
                 EditText mEmail = findViewById(R.id.email);
+                EditText mPassword = findViewById(R.id.password);
 
-                AccountContract loginAccount = new AccountContract(
-                        "none"
-                        , mName.getText().toString()
-                        , mEmail.getText().toString()
-                        , "anon"
-                        , "none"
-                );
+                auth.signInWithEmailAndPassword(mEmail.getText().toString(), mPassword.getText().toString())
+                        .addOnCompleteListener(RegistrationActivity.this, task -> {
+                            showProgress(false);
+                            if (!task.isSuccessful()) {
+                                // there was an error
+                                if (mPassword.length() < 6) {
+
+                                    Toast.makeText(getBaseContext(), getString(R.string.pass_length), Toast.LENGTH_LONG).show();
+                                } else {
+                                    Toast.makeText(getBaseContext(), getString(R.string.auth_failed), Toast.LENGTH_LONG).show();
+                                }
+                            } else {
+
+                                Intent intent = new Intent(getBaseContext(), MapsActivity.class);
+                                startActivity(intent);
+                                finish();
+                            }
+                        });
 
 
-                Bundle nMessage = new Bundle();
-                nMessage.putParcelable("account", loginAccount);
-
-                Intent intent = new Intent(getBaseContext(), MapsActivity.class);
-                intent.putExtras(nMessage);
-                startActivity(intent);
-                finish();
             } else {
                 showProgress(false);
-//                mPasswordView.setError(getString(R.string.error_incorrect_password));
-//                mPasswordView.requestFocus();
             }
         }
+
+
+
+
+
+
+
 
         @Override
         protected void onCancelled() {

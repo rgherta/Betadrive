@@ -8,7 +8,7 @@ import java.net.URL;
 public class NetworkUtils {
 
     private static final String DIRECTIONS_BASE = "https://maps.googleapis.com/maps/api/directions";
-    private static final String FUNCTIONS_BASE = "https://us-central1-beta-94f76.cloudfunctions.net";
+    private static final String FUNCTIONS_BASE = "https://europe-west1-beta-94f76.cloudfunctions.net";
 
     public static URL buildDirectionsUrl(String apiType, String origin, String destination, String API_KEY){
     Uri builtUri = Uri.parse(DIRECTIONS_BASE).buildUpon()
@@ -31,10 +31,11 @@ public class NetworkUtils {
 
 
 
-    public static URL buildHailUrl(String apiBase, String hailEndpoint){
+    public static URL buildHailUrl(){
         Uri builtUri = Uri.parse(FUNCTIONS_BASE).buildUpon()
-                .appendPath(apiBase)
-                .appendPath(hailEndpoint)
+                .appendPath("api")
+                .appendPath("rides")
+                .appendPath("hail")
                 .build();
         URL url = null;
 

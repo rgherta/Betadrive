@@ -25,7 +25,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 
-import com.ride.betadrive.DataModels.AccountContract;
+import com.google.firebase.auth.FirebaseUser;
 import com.ride.betadrive.Loaders.GeocoderLoader;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -78,7 +78,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleApiClient mGoogleApiClient;
     private LatLngBounds.Builder mBounds = new LatLngBounds.Builder();
     private DrawerLayout drawerLayout;
-    private AccountContract account;
     private boolean mLocationPermissionGranted;
 
 
@@ -96,6 +95,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //LOADERS
     private Bundle loaderBundle = new Bundle();
 
+    //FIREBASE
+    private FirebaseAuth mAuth;
+    private FirebaseUser currentUser;
+
     //View
     private TextView                pickupPlaceView;
     private TextView                destPlaceView;
@@ -112,6 +115,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
+        //Firebase
+        mAuth = FirebaseAuth.getInstance();
+        currentUser = mAuth.getCurrentUser();
 
 
         //RESOURCES & VIEWS
@@ -206,11 +213,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void getUserDetails(){
 
-        Intent intent = getIntent();
-        Bundle message = intent.getExtras();
-        account = message.getParcelable("account");
-
-        Log.w(TAG, account.toString());
+//        Intent intent = getIntent();
+//        Bundle message = intent.getExtras();
+//        account = message.getParcelable("account");
+//
+//        Log.w(TAG, account.toString());
 
         drawerLayout = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
@@ -237,16 +244,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         View nav_header = navigationView.getHeaderView(0);
 
         TextView username = nav_header.findViewById(R.id.header_title);
-        username.setText(account.getFULL_NAME());
+        if(currentUser.getDisplayName() == null || currentUser.getDisplayName().trim().equals("")) {username.setText("Registered user");} else { username.setText(currentUser.getDisplayName()); };
 
         TextView email = nav_header.findViewById(R.id.header_subtitle);
-        email.setText(account.getUSER_EMAIL());
+        email.setText(currentUser.getEmail());
 
         ImageView photo = nav_header.findViewById(R.id.profile_photo);
-        if (account.getUSER_PHOTO().equals("anon")) {
+        if (currentUser.getPhotoUrl() == null) {
             Picasso.get().load(R.drawable.anon).into(photo);
         } else {
-            Picasso.get().load(account.getUSER_PHOTO()).into(photo);
+            Picasso.get().load(currentUser.getPhotoUrl()).into(photo);
         }
 
     }
@@ -266,6 +273,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == AUTOCOMPLETE_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
                 Place place = Autocomplete.getPlaceFromIntent(data);
@@ -274,7 +282,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 fab.setVisibility(View.GONE);
                 fab_next.setVisibility(View.VISIBLE);
 
-                destAddress.setAddressLine(0,place.getAddress());
+                destAddress.setAddressLine(0, place.getAddress());
                 destAddress.setLatitude(place.getLatLng().latitude);
                 destAddress.setLongitude(place.getLatLng().longitude);
 
@@ -348,7 +356,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void signOut() {
 
-        FirebaseAuth.getInstance().signOut();
+        mAuth.signOut();
         Intent intent = new Intent(getBaseContext(), LoginActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP |
                                 Intent.FLAG_ACTIVITY_CLEAR_TASK |

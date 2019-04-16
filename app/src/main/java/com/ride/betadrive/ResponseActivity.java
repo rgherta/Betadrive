@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
@@ -20,12 +21,15 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class ResponseActivity extends AppCompatActivity {
 
     public static final String TAG = ResponseActivity.class.getSimpleName();
     private FirebaseAuth mAuth;
+    private FirebaseUser currentUser;
 
     //Voley
     RequestQueue queue;
@@ -43,6 +47,10 @@ public class ResponseActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_response);
 
+        //Firebase
+        mAuth = FirebaseAuth.getInstance();
+        currentUser = mAuth.getCurrentUser();
+
         Intent intent = getIntent();
         Bundle bundle = intent.getExtras();
         pickupAddress = bundle.getParcelable("pickup_address");
@@ -54,19 +62,16 @@ public class ResponseActivity extends AppCompatActivity {
 
         mResponse = findViewById(R.id.response);
 
-        mAuth = FirebaseAuth.getInstance();
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-
         currentUser.getIdToken(false).addOnCompleteListener(task -> {
 
             if (task.isSuccessful()) {
 
-                Log.w(TAG,"Token found single thread after force refresh "+task.getResult().getToken());
+                Log.w(TAG,"Token found single thread after force refresh " + task.getResult().getToken());
                 //response.setText(task.getResult().getToken());
                 String token = task.getResult().getToken();
-                mRequest = createRequest(pickupAddress, destAddress, payment, token);
-                URL hailUrl = NetworkUtils.buildHailUrl("api", "hail");
-                queue.add( makeJsonRequest(Request.Method.POST, hailUrl, mRequest) );
+                mRequest = createRequest(pickupAddress, destAddress, payment, currentUser.getUid());
+                URL hailUrl = NetworkUtils.buildHailUrl();
+                queue.add( makeJsonRequest(Request.Method.POST, hailUrl, mRequest, token) );
 
 
 
@@ -75,7 +80,7 @@ public class ResponseActivity extends AppCompatActivity {
 
     }
 
-    private static JSONObject createRequest(Address pickupAddress, Address destAddress, String payment, String token){
+    private static JSONObject createRequest(Address pickupAddress, Address destAddress, String payment, String requester){
 
         JSONObject response = null;
 
@@ -93,7 +98,7 @@ public class ResponseActivity extends AppCompatActivity {
             response.put("payment", payment);
             response.put("pickup", pickup);
             response.put("destination", destination);
-            response.put("token", token);
+            response.put("requester", requester);
 
 
 
@@ -101,23 +106,35 @@ public class ResponseActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+        Log.w(TAG, response.toString());
+
         return response;
 
     }
 
 
 
-    private JsonObjectRequest makeJsonRequest(int method, URL url, JSONObject myRequest){
+    private JsonObjectRequest makeJsonRequest(int method, URL url, JSONObject myRequest, String token){
 
-       return new JsonObjectRequest(method, url.toString()
+       return new JsonObjectRequest(method
+                                    , url.toString()
                                     , myRequest
-                                    , response -> mResponse.setText("Response: " + response.toString())
-               , error -> {
-                   // TODO: Handle error
-                    mResponse.setText("Response: " + error.toString());
-                   Log.w(TAG, "Json request error");
+                                    , response -> {
+                                           mResponse.setText("Response: " + response.toString());
+                                       }
+                                    , error -> {
+                                            mResponse.setText("Response: " + error.toString());
+                                            Log.w(TAG, "Json request error");
+                                        }
 
-               });
+       ){
+           @Override
+           public Map<String, String> getHeaders() {
+               Map<String, String> params = new HashMap<>();
+               params.put("authorization", token);
+               return params;
+           }
+       };
 
 
     }

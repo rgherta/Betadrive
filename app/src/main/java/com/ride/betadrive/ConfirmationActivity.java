@@ -14,6 +14,8 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.ride.betadrive.Utils.NetworkUtils;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -50,11 +52,11 @@ public class ConfirmationActivity extends FragmentActivity implements OnMapReady
 
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_confirmation);
+
 
         Intent intent = getIntent();
         pickupAddress = intent.getParcelableExtra("pickupAddress");
@@ -103,7 +105,7 @@ public class ConfirmationActivity extends FragmentActivity implements OnMapReady
 
                        mMap.addPolyline(lineOptions);
 
-                       mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 50));
+                       mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 50));
 
 
                     } catch (JSONException e) {

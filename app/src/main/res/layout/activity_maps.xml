@@ -32,13 +32,17 @@
 
 
 
-            <com.ride.betadrive.CustomViews.PinPoint
-                android:id="@+id/map_wrapper"
-                android:layout_width="wrap_content"
+            <androidx.appcompat.widget.LinearLayoutCompat
+                android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="3"
                 >
 
+            <com.ride.betadrive.CustomViews.PinPoint
+                android:id="@+id/map_wrapper"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                >
                 <fragment xmlns:android="http://schemas.android.com/apk/res/android"
                     xmlns:map="http://schemas.android.com/apk/res-auto"
                     xmlns:tools="http://schemas.android.com/tools"
@@ -50,10 +54,10 @@
                     map:uiZoomControls = "false"
                     map:uiCompass = "false"
 
-                    />
+                  />
 
             </com.ride.betadrive.CustomViews.PinPoint>
-
+            </androidx.appcompat.widget.LinearLayoutCompat>
 
 
             <androidx.appcompat.widget.LinearLayoutCompat

@@ -4,6 +4,7 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,9 +12,12 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 import com.ride.betadrive.R;
+import com.ride.betadrive.ResponseActivity;
 
 
 public class PinPoint extends RelativeLayout {
+
+    public static final String TAG = PinPoint.class.getSimpleName();
 
     private ImageView mMarkImageView = null;
     private View mShadowView = null;
@@ -105,4 +109,5 @@ public class PinPoint extends RelativeLayout {
         }
         return super.dispatchTouchEvent(ev);
     }
+
 }
