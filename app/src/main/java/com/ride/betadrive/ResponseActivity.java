@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -25,6 +26,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.ride.betadrive.Adapters.MapViewAdapter;
 import com.ride.betadrive.DataModels.DriverContract;
+import com.ride.betadrive.Interfaces.IFragmentToActivity;
 import com.ride.betadrive.Utils.NetworkUtils;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -39,7 +41,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-public class ResponseActivity extends AppCompatActivity  implements OnMapReadyCallback  {
+public class ResponseActivity extends AppCompatActivity  implements OnMapReadyCallback, IFragmentToActivity {
 
     public static final String TAG = ResponseActivity.class.getSimpleName();
     private static final int DEFAULT_ZOOM = 17;
@@ -145,4 +147,8 @@ public class ResponseActivity extends AppCompatActivity  implements OnMapReadyCa
         }
     }
 
+    @Override
+    public void showPagerToast(String msg) {
+        Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
+    }
 }

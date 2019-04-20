@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/white"
     tools:context=".ResponseActivity">
 
 
@@ -26,6 +27,7 @@
         android:layout_width="match_parent"
         android:layout_height="240dp"
         android:background="@android:color/transparent"
+        tools:context=".ResponseActivity"
         >
 
     </androidx.viewpager.widget.ViewPager>
