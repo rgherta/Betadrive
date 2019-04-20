@@ -1,35 +1,54 @@
 package com.ride.betadrive;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.pm.PackageInfoCompat;
+import androidx.viewpager.widget.ViewPager;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Address;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
 
-import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.ride.betadrive.Adapters.MapViewAdapter;
+import com.ride.betadrive.DataModels.DriverContract;
 import com.ride.betadrive.Utils.NetworkUtils;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 
-public class ResponseActivity extends AppCompatActivity {
+public class ResponseActivity extends AppCompatActivity  implements OnMapReadyCallback  {
 
     public static final String TAG = ResponseActivity.class.getSimpleName();
+    private static final int DEFAULT_ZOOM = 17;
     private FirebaseAuth mAuth;
     private FirebaseUser currentUser;
+
+    //Google map
+    private GoogleMap mMap;
+    private ViewPager mViewPager;
 
     //Voley
     RequestQueue queue;
@@ -38,8 +57,10 @@ public class ResponseActivity extends AppCompatActivity {
     Address pickupAddress;
     Address destAddress;
     String payment;
-    JSONObject mRequest;
-    TextView mResponse;
+    ArrayList<DriverContract> drivers;
+
+    String mPackageName;
+    int mPackageCode;
 
 
     @Override
@@ -57,87 +78,62 @@ public class ResponseActivity extends AppCompatActivity {
         destAddress = bundle.getParcelable("dest_address");
         payment = bundle.getString("payment");
 
-        queue = Volley.newRequestQueue(this);
+        mViewPager = findViewById(R.id.drivers_pager);
+        drivers = bundle.getParcelableArrayList("drivers");
 
 
-        mResponse = findViewById(R.id.response);
-
-        currentUser.getIdToken(false).addOnCompleteListener(task -> {
-
-            if (task.isSuccessful()) {
-
-                Log.w(TAG,"Token found single thread after force refresh " + task.getResult().getToken());
-                //response.setText(task.getResult().getToken());
-                String token = task.getResult().getToken();
-                mRequest = createRequest(pickupAddress, destAddress, payment, currentUser.getUid());
-                URL hailUrl = NetworkUtils.buildHailUrl();
-                queue.add( makeJsonRequest(Request.Method.POST, hailUrl, mRequest, token) );
-
-
-
-            }
-        });
-
-    }
-
-    private static JSONObject createRequest(Address pickupAddress, Address destAddress, String payment, String requester){
-
-        JSONObject response = null;
 
         try {
-
-            response = new JSONObject();
-            JSONObject pickup = new JSONObject();
-            JSONObject destination = new JSONObject();
-
-            pickup.put("lat", pickupAddress.getLatitude());
-            pickup.put("long", pickupAddress.getLongitude());
-            destination.put("lat", destAddress.getLatitude());
-            destination.put("long", destAddress.getLongitude());
-
-            response.put("payment", payment);
-            response.put("pickup", pickup);
-            response.put("destination", destination);
-            response.put("requester", requester);
-
-
-
-        } catch (JSONException e) {
+            mPackageName = this.getPackageManager().getPackageInfo(this.getPackageName(), 0).versionName;
+            mPackageCode = (int) PackageInfoCompat.getLongVersionCode(this.getPackageManager().getPackageInfo(this.getPackageName(), 0));
+        } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
 
-        Log.w(TAG, response.toString());
 
-        return response;
+        queue = Volley.newRequestQueue(this);
+
+
 
     }
 
 
+    @Override
+    protected void onStart() {
+        super.onStart();
 
-    private JsonObjectRequest makeJsonRequest(int method, URL url, JSONObject myRequest, String token){
+        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
 
-       return new JsonObjectRequest(method
-                                    , url.toString()
-                                    , myRequest
-                                    , response -> {
-                                           mResponse.setText("Response: " + response.toString());
-                                       }
-                                    , error -> {
-                                            mResponse.setText("Response: " + error.toString());
-                                            Log.w(TAG, "Json request error");
-                                        }
+    }
 
-       ){
-           @Override
-           public Map<String, String> getHeaders() {
-               Map<String, String> params = new HashMap<>();
-               params.put("authorization", token);
-               return params;
-           }
-       };
+    /**
+     * Manipulates the map once available.
+     * This callback is triggered when the map is ready to be used.
+     * This is where we can add markers or lines, add listeners or move the camera. In this case,
+     * we just add a marker near Sydney, Australia.
+     * If Google Play services is not installed on the device, the user will be prompted to install
+     * it inside the SupportMapFragment. This method will only be triggered once the user has
+     * installed Google Play services and returned to the app.
+     */
+    @SuppressLint("MissingPermission")
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+
+        mMap = googleMap;
+        mMap.getUiSettings().setCompassEnabled(false);
+        mMap.getUiSettings().setMapToolbarEnabled(false);
+        mMap.getUiSettings().setRotateGesturesEnabled(false);
+        mMap.addMarker(new MarkerOptions().position(new LatLng(pickupAddress.getLatitude(), pickupAddress.getLongitude())).title("You are here"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(pickupAddress.getLatitude(), pickupAddress.getLongitude()), DEFAULT_ZOOM));
+
+        //add viewpager array
+        mViewPager.setAdapter(new MapViewAdapter(this, drivers));
 
 
     }
+
 
 
 
