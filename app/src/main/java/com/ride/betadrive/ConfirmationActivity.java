@@ -292,7 +292,9 @@ public class ConfirmationActivity extends FragmentActivity implements OnMapReady
             for (int i = 0; i < driversJson.length(); i++ ) {
                 JSONObject location = driversJson.getJSONObject(i).getJSONObject("Loc");
 
-                DriverContract driver = new DriverContract( driversJson.getJSONObject(i).getString("Name")
+                DriverContract driver = new DriverContract(
+                        driversJson.getJSONObject(i).getString("uid")
+                        , driversJson.getJSONObject(i).getString("Name")
                         , driversJson.getJSONObject(i).getString("Plate")
                         , (short) driversJson.getJSONObject(i).getInt("Status")
                         , new LatLng( location.getDouble("_latitude"), location.getDouble("_longitude") )

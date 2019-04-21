@@ -1,12 +1,17 @@
 package com.ride.betadrive;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.pm.PackageInfoCompat;
 import androidx.viewpager.widget.ViewPager;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.os.Bundle;
 import android.util.Log;
@@ -22,7 +27,11 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.ride.betadrive.Adapters.MapViewAdapter;
 import com.ride.betadrive.DataModels.DriverContract;
@@ -38,6 +47,7 @@ import org.json.JSONObject;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -51,6 +61,7 @@ public class ResponseActivity extends AppCompatActivity  implements OnMapReadyCa
     //Google map
     private GoogleMap mMap;
     private ViewPager mViewPager;
+    private ArrayList<LatLng> poiList;
 
     //Voley
     RequestQueue queue;
@@ -82,6 +93,9 @@ public class ResponseActivity extends AppCompatActivity  implements OnMapReadyCa
 
         mViewPager = findViewById(R.id.drivers_pager);
         drivers = bundle.getParcelableArrayList("drivers");
+
+        poiList = new ArrayList<>();
+        poiList.add(new LatLng(pickupAddress.getLatitude(), pickupAddress.getLongitude()));
 
 
 
@@ -148,7 +162,33 @@ public class ResponseActivity extends AppCompatActivity  implements OnMapReadyCa
     }
 
     @Override
-    public void showPagerToast(String msg) {
-        Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
+    public void acceptDriver(DriverContract driver) {
+        Log.w(TAG, driver.toString());
+        findViewById(R.id.drivers_pager).setVisibility(View.GONE);
+
+        double dx = pickupAddress.getLatitude() - driver.getLocLat();
+        double dy = pickupAddress.getLongitude() - driver.getLocLong();
+        double myKm = 0.005;
+        poiList.add(new LatLng(pickupAddress.getLatitude() + dx + myKm, pickupAddress.getLongitude() + dy + myKm));
+        poiList.add(new LatLng(pickupAddress.getLatitude() + dx + myKm, pickupAddress.getLongitude() - dy - myKm));
+        poiList.add(new LatLng(pickupAddress.getLatitude() - dx - myKm, pickupAddress.getLongitude() - dy - myKm));
+        poiList.add(new LatLng(pickupAddress.getLatitude() - dx - myKm, pickupAddress.getLongitude() + dy + myKm));
+
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        for (LatLng point : poiList) {
+            builder.include(point);
+        };
+
+        LatLngBounds bounds = builder.build();
+        mMap.addMarker(new MarkerOptions().position(new LatLng(driver.getLocLat(), driver.getLocLong())).title("Towing truck"));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 0));
+
+        mMap.setPadding(50,50,50,180);
+
+        findViewById(R.id.bottom_sheet).setVisibility(View.VISIBLE);
+
     }
+
+
+
 }

@@ -6,6 +6,8 @@ import androidx.annotation.NonNull;
 import com.google.android.gms.maps.model.LatLng;
 
 public class DriverContract implements Parcelable {
+
+    private String uid;
     private String cur;
     private double locLat;
     private double locLong;
@@ -36,8 +38,14 @@ public class DriverContract implements Parcelable {
     public short getStatus() { return status; }
     public void setStatus(short status) { this.status = status; }
 
-    public DriverContract( String driverName, String plate, short status, LatLng loc, String cur, double ppk ){
+    public String getUid() { return uid; }
 
+    public void setUid(String uid) { this.uid = uid; }
+
+
+    public DriverContract( String uid, String driverName, String plate, short status, LatLng loc, String cur, double ppk ){
+
+        this.setUid(uid);
         this.setDriverName(driverName);
         this.setPlate(plate);
         this.setStatus(status);
@@ -53,13 +61,14 @@ public class DriverContract implements Parcelable {
     @NonNull
     @Override
     public String toString() {
-        return  "driverName: " + this.getDriverName() +
-                "plate: " + this.getPlate() +
-                "status: " + this.getStatus() +
-                "locLong: " + this.getLocLong() +
-                "locLat: " + this.getLocLat() +
-                "cur: " + this.getCur() +
-                "ppk: " + this.getPpk();
+        return  " uid: " + this.getUid() +
+                " driverName: " + this.getDriverName() +
+                " plate: " + this.getPlate() +
+                " status: " + this.getStatus() +
+                " locLong: " + this.getLocLong() +
+                " locLat: " + this.getLocLat() +
+                " cur: " + this.getCur() +
+                " ppk: " + this.getPpk();
     }
 
 
@@ -70,6 +79,7 @@ public class DriverContract implements Parcelable {
 
     protected DriverContract(Parcel in) {
 
+        uid = in.readString();
         cur = in.readString();
         locLat = in.readDouble();
         locLong = in.readDouble();
@@ -82,6 +92,7 @@ public class DriverContract implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(uid);
         dest.writeString(cur);
         dest.writeDouble(locLat);
         dest.writeDouble(locLong);
@@ -105,5 +116,6 @@ public class DriverContract implements Parcelable {
             return new DriverContract[size];
         }
     };
+
 
 }

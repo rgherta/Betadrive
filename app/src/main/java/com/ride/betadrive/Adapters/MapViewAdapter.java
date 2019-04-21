@@ -41,7 +41,7 @@ public class MapViewAdapter extends PagerAdapter {
 
     @Override
     public void destroyItem(ViewGroup container, int position, Object object) {
-        mCallback = null;
+        //mCallback = null;
         container.removeView((View) object);
     }
 
@@ -63,7 +63,7 @@ public class MapViewAdapter extends PagerAdapter {
 
         Button acceptButton = itemView.findViewById(R.id.accept_ride);
         acceptButton.setOnClickListener(v -> {
-            mCallback.showPagerToast("Hello from Pager");
+            mCallback.acceptDriver(driversList.get(position));
         });
 
         container.addView(itemView);

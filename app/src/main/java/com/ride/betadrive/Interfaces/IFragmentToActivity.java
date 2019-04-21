@@ -1,6 +1,8 @@
 package com.ride.betadrive.Interfaces;
 
+import com.ride.betadrive.DataModels.DriverContract;
+
 public interface IFragmentToActivity {
-    void showPagerToast(String msg);
+    void acceptDriver(DriverContract driver);
 
 }

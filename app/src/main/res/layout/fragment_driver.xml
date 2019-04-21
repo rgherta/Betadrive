@@ -17,7 +17,7 @@
     android:id="@+id/driver_frg"
     android:layout_height="240dp"
     android:layout_width="match_parent"
-    android:background="@color/white"
+    android:background="@drawable/driver_frg_stroke"
 
     >
 
@@ -72,6 +72,7 @@
         android:layout_height="72dp"
         android:background="#CFD5E1"
         android:elevation="-1dp"
+        android:layout_margin="1dip"
         app:layout_constraintTop_toTopOf="@id/driver_frg"></androidx.appcompat.widget.LinearLayoutCompat>
 
 
