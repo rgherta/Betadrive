@@ -1,18 +1,25 @@
 package com.ride.betadrive;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.pm.PackageInfoCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.ViewPager;
 
 import android.annotation.SuppressLint;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.location.Address;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -33,9 +40,15 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
+import com.ride.betadrive.Adapters.ChatMessagesAdapter;
 import com.ride.betadrive.Adapters.MapViewAdapter;
 import com.ride.betadrive.DataModels.DriverContract;
 import com.ride.betadrive.Interfaces.IFragmentToActivity;
+import com.ride.betadrive.Services.HttpService;
 import com.ride.betadrive.Utils.NetworkUtils;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -65,21 +78,59 @@ public class ResponseActivity extends AppCompatActivity  implements OnMapReadyCa
 
     //Voley
     RequestQueue queue;
+    String mPackageName;
+    String mApplicationId;
+    int mPackageCode;
 
     //Fields
     Address pickupAddress;
     Address destAddress;
-    String payment;
+    int payment;
     ArrayList<DriverContract> drivers;
 
-    String mPackageName;
-    int mPackageCode;
+    //Recycler
+    private RecyclerView recyclerView;
+    private RecyclerView.Adapter mAdapter;
+    private RecyclerView.LayoutManager layoutManager;
 
+    SharedPreferences sharedPreferences;
+    private String sharedPrefFile = "com.ride.betadrive";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_response);
+
+        sharedPreferences = getSharedPreferences(sharedPrefFile, MODE_PRIVATE);
+        mPackageName = sharedPreferences.getString("PackageName", null);
+        mPackageCode = sharedPreferences.getInt("PackageCode", 0);
+        mApplicationId = sharedPreferences.getString("ApplicationId", null);
+
+//        retrieveToken();
+        // If a notification message is tapped, any data accompanying the notification
+        // message is available in the intent extras. In this sample the launcher
+        // intent is fired when the notification is tapped, so any accompanying data would
+        // be handled here. If you want a different intent fired, set the click_action
+        // field of the notification message to the desired intent. The launcher intent
+        // is used when no click_action is specified.
+        //
+        // Handle possible data accompanying notification message.
+        // [START handle_data_extras]
+//        if (getIntent().getExtras() != null) {
+//            for (String key : getIntent().getExtras().keySet()) {
+//                Object value = getIntent().getExtras().get(key);
+//                Log.d(TAG, "Key: " + key + " Value: " + value);
+//            }
+//        }
+        // [END handle_data_extras]
+
+        //Chat Messages Recycler
+        recyclerView = findViewById(R.id.recycler_messages);
+        recyclerView.setHasFixedSize(true);
+        layoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(layoutManager);
+        mAdapter = new ChatMessagesAdapter(null); //TODO: get messages arrayluist cu mesajeel
+        recyclerView.setAdapter(mAdapter);
 
         //Firebase
         mAuth = FirebaseAuth.getInstance();
@@ -89,7 +140,7 @@ public class ResponseActivity extends AppCompatActivity  implements OnMapReadyCa
         Bundle bundle = intent.getExtras();
         pickupAddress = bundle.getParcelable("pickup_address");
         destAddress = bundle.getParcelable("dest_address");
-        payment = bundle.getString("payment");
+        payment = bundle.getInt("payment");
 
         mViewPager = findViewById(R.id.drivers_pager);
         drivers = bundle.getParcelableArrayList("drivers");
@@ -97,19 +148,7 @@ public class ResponseActivity extends AppCompatActivity  implements OnMapReadyCa
         poiList = new ArrayList<>();
         poiList.add(new LatLng(pickupAddress.getLatitude(), pickupAddress.getLongitude()));
 
-
-
-        try {
-            mPackageName = this.getPackageManager().getPackageInfo(this.getPackageName(), 0).versionName;
-            mPackageCode = (int) PackageInfoCompat.getLongVersionCode(this.getPackageManager().getPackageInfo(this.getPackageName(), 0));
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
-
-
-        queue = Volley.newRequestQueue(this);
-
-
+        queue = HttpService.getInstance(this).getRequestQueue();
 
     }
 
@@ -188,6 +227,30 @@ public class ResponseActivity extends AppCompatActivity  implements OnMapReadyCa
         findViewById(R.id.bottom_sheet).setVisibility(View.VISIBLE);
 
     }
+
+
+//    private void retrieveToken(){
+//        // [START retrieve_current_token]
+//        FirebaseInstanceId.getInstance().getInstanceId()
+//                .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+//                    @Override
+//                    public void onComplete(@NonNull Task<InstanceIdResult> task) {
+//                        if (!task.isSuccessful()) {
+//                            Log.w(TAG, "getInstanceId failed", task.getException());
+//                            return;
+//                        }
+//
+//                        // Get new Instance ID token
+//                        String token = task.getResult().getToken();
+//
+//                        // Log and toast
+//                        String msg = token;
+//                        Log.w(TAG, msg);
+//                        Toast.makeText(ResponseActivity.this, msg, Toast.LENGTH_SHORT).show();
+//                    }
+//                });
+//        // [END retrieve_current_token]
+//    }
 
 
 

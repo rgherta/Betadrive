@@ -1,5 +1,10 @@
 package com.ride.betadrive;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
 import com.ride.betadrive.DataModels.AccountContract;
 import com.ride.betadrive.Registration.CustomLoginActivity;
 import com.ride.betadrive.Registration.RegistrationActivity;
@@ -26,19 +31,31 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.ride.betadrive.Services.HttpService;
+import com.ride.betadrive.Utils.NetworkUtils;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.pm.PackageInfoCompat;
 
+import android.content.Context;
 import android.content.Intent;
 
 import android.content.IntentSender;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
+
+import org.json.JSONObject;
+
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -56,10 +73,42 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     LocationRequest mLocationRequest;
     PendingResult<LocationSettingsResult> result;
 
+    //Voley
+    RequestQueue queue;
+
+    String applicationId;
+    String mPackageName;
+    int mPackageCode;
+    String fcmToken;
+
+    SharedPreferences sharedPreferences;
+    private String sharedPrefFile = "com.ride.betadrive";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+
+        try {
+            mPackageName = this.getPackageManager().getPackageInfo(this.getPackageName(), 0).versionName;
+            mPackageCode = (int) PackageInfoCompat.getLongVersionCode(this.getPackageManager().getPackageInfo(this.getPackageName(), 0));
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        sharedPreferences = getSharedPreferences(sharedPrefFile, MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("ApplicationId", BuildConfig.APPLICATION_ID );
+        editor.putString("PackageName", mPackageName);
+        editor.putInt("PackageCode", mPackageCode);
+        editor.commit();
+
+        retrieveFCMToken();
+
+        queue = HttpService.getInstance(this).getRequestQueue();
+
+
 
         // Configure sign-in to request the user's ID, email address, and basic
         // profile. ID and basic profile are included in DEFAULT_SIGN_IN.
@@ -109,24 +158,91 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
         mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.d(TAG, "signInWithCredential:success");
-                            FirebaseUser user = mAuth.getCurrentUser();
-                            updateUI(user);
-                        } else {
-                            // If sign in fails, display a message to the user.
-                            Log.w(TAG, "signInWithCredential:failure", task.getException());
-                            Snackbar.make(findViewById(R.id.login_page), "Authentication Failed.", Snackbar.LENGTH_SHORT).show();
-                            updateUI(null);
-                        }
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        boolean isNew = task.getResult().getAdditionalUserInfo().isNewUser();
+                        if(isNew){
+                            //TODO: call and add to users collection
 
-                        // ...
+                            mAuth.getCurrentUser().getIdToken(false).addOnCompleteListener(tokenTask -> {
+
+                                if (tokenTask.isSuccessful()) {
+
+                                    Log.w(TAG,"Token found single thread after force refresh " + tokenTask.getResult().getToken());
+                                    String token = tokenTask.getResult().getToken();
+                                    JSONObject mRequest = NetworkUtils.createAddUserJSON(mAuth.getCurrentUser().getUid(), sharedPreferences.getString("FcmToken", null), mAuth.getCurrentUser().getEmail());
+                                    URL addUserUrl = NetworkUtils.buildUrl("addUser");
+                                    queue.add( makeJsonRequest(Request.Method.PUT, addUserUrl, mRequest, token) );
+                                }
+                            });
+
+
+
+                        }
+                        // Sign in success, update UI with the signed-in user's information
+                        Log.d(TAG, "signInWithCredential:success");
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        updateUI(user);
+                    } else {
+                        // If sign in fails, display a message to the user.
+                        Log.w(TAG, "signInWithCredential:failure", task.getException());
+                        Snackbar.make(findViewById(R.id.login_page), "Authentication Failed.", Snackbar.LENGTH_SHORT).show();
+                        updateUI(null);
                     }
+
+                    // ...
                 });
+    }
+
+
+    private JsonObjectRequest makeJsonRequest(int method, URL url, JSONObject myRequest, String token){
+
+        return new JsonObjectRequest(method
+                , url.toString()
+                , myRequest
+                , response -> {
+            Log.w(TAG, response.toString());
+        }
+                , error -> {
+            Log.w(TAG, error.toString());
+        }
+
+        ){
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> params = new HashMap<>();
+                params.put("authorization", token);
+                params.put("version_code", String.valueOf(sharedPreferences.getInt("PackageCode", 0)));
+                params.put("version_name", sharedPreferences.getString("PackageName", null));
+                params.put("application_id", sharedPreferences.getString("ApplicationId", null));
+                return params;
+            }
+        };
+
+
+    }
+
+        private void retrieveFCMToken(){
+        // [START retrieve_current_token]
+        FirebaseInstanceId.getInstance().getInstanceId()
+                .addOnCompleteListener(task -> {
+                    if (!task.isSuccessful()) {
+                        Log.w(TAG, "getInstanceId failed", task.getException());
+                        return;
+                    }
+
+                    // Get new Instance ID token
+                    String token = task.getResult().getToken();
+
+                    SharedPreferences.Editor preferencesEditor = sharedPreferences.edit();
+                    preferencesEditor.putString("FcmToken", token);
+                    preferencesEditor.apply();
+
+                    // Log and toast
+                    String msg = token;
+                    Log.w(TAG, msg);
+                });
+        // [END retrieve_current_token]
     }
 
 
@@ -205,20 +321,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         getLocationPermission();
 
         if(account != null){
-
-//            AccountContract loginAccount = new AccountContract(
-//                    account.getUid()
-//                    , account.getDisplayName()
-//                    , account.getEmail()
-//                    , String.valueOf(account.getPhotoUrl())
-//                    , "" //this is a task
-//            );
-//
-//            Bundle message = new Bundle();
-//            message.putParcelable("account", loginAccount);
-
             Intent intent = new Intent(this, MapsActivity.class);
-            //intent.putExtras(message);
             startActivity(intent);
 
         }

@@ -4,6 +4,7 @@ import androidx.core.content.pm.PackageInfoCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.os.Bundle;
@@ -23,6 +24,7 @@ import com.github.jorgecastilloprz.FABProgressCircle;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.ride.betadrive.DataModels.DriverContract;
+import com.ride.betadrive.Services.HttpService;
 import com.ride.betadrive.Utils.NetworkUtils;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -56,7 +58,7 @@ public class ConfirmationActivity extends FragmentActivity implements OnMapReady
 
     private Address  pickupAddress;
     private Address  destAddress;
-    private String payment = "cash";
+    private int payment = 0;
 
     //Google map
     private GoogleMap mMap;
@@ -66,16 +68,23 @@ public class ConfirmationActivity extends FragmentActivity implements OnMapReady
     //Voley
     RequestQueue queue;
     String mPackageName;
+    String mApplicationId;
     int mPackageCode;
 
     FABProgressCircle circleFab;
-
+    SharedPreferences sharedPreferences;
+    private String sharedPrefFile = "com.ride.betadrive";
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_confirmation);
+
+        sharedPreferences = getSharedPreferences(sharedPrefFile, MODE_PRIVATE);
+        mPackageName = sharedPreferences.getString("PackageName", null);
+        mPackageCode = sharedPreferences.getInt("PackageCode", 0);
+        mApplicationId = sharedPreferences.getString("ApplicationId", null);
 
         //Firebase
         mAuth = FirebaseAuth.getInstance();
@@ -92,16 +101,8 @@ public class ConfirmationActivity extends FragmentActivity implements OnMapReady
         TextView destTxt = findViewById(R.id.dir_address);
         destTxt.setText(destAddress.getAddressLine(0));
 
-        try {
-            mPackageName = this.getPackageManager().getPackageInfo(this.getPackageName(), 0).versionName;
-            mPackageCode = (int) PackageInfoCompat.getLongVersionCode(this.getPackageManager().getPackageInfo(this.getPackageName(), 0));
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
-
-
         //get directions
-        queue = Volley.newRequestQueue(this);
+        queue = HttpService.getInstance(this).getRequestQueue();
 
         Log.w(TAG, pickupAddress.toString());
         Log.w(TAG, destAddress.toString());
@@ -198,6 +199,7 @@ public class ConfirmationActivity extends FragmentActivity implements OnMapReady
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.next_fab:
+                findViewById(R.id.next_fab).setEnabled(false);
                 getApiResponse();
                 break;
         }
@@ -210,50 +212,17 @@ public class ConfirmationActivity extends FragmentActivity implements OnMapReady
         currentUser.getIdToken(false).addOnCompleteListener(task -> {
 
             if (task.isSuccessful()) {
-
                 Log.w(TAG,"Token found single thread after force refresh " + task.getResult().getToken());
-                //response.setText(task.getResult().getToken());
                 String token = task.getResult().getToken();
-                JSONObject mRequest = createRequest(pickupAddress, destAddress, payment, currentUser.getUid());
-                URL hailUrl = NetworkUtils.buildHailUrl();
+                JSONObject mRequest = NetworkUtils.createRideRequest(pickupAddress, destAddress, payment, currentUser.getUid());
+                URL hailUrl = NetworkUtils.buildUrl("hail");
                 queue.add( makeJsonRequest(Request.Method.POST, hailUrl, mRequest, token) );
-
             }
         });
 
     }
 
-    private static JSONObject createRequest(Address pickupAddress, Address destAddress, String payment, String requester){
 
-        JSONObject response = null;
-
-        try {
-
-            response = new JSONObject();
-            JSONObject pickup = new JSONObject();
-            JSONObject destination = new JSONObject();
-
-            pickup.put("lat", pickupAddress.getLatitude());
-            pickup.put("long", pickupAddress.getLongitude());
-            destination.put("lat", destAddress.getLatitude());
-            destination.put("long", destAddress.getLongitude());
-
-            response.put("payment", payment);
-            response.put("pickup", pickup);
-            response.put("destination", destination);
-            response.put("requester", requester);
-
-
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        Log.w(TAG, response.toString());
-
-        return response;
-
-    }
 
 
     private JsonObjectRequest makeJsonRequest(int method, URL url, JSONObject myRequest, String token){
@@ -276,6 +245,7 @@ public class ConfirmationActivity extends FragmentActivity implements OnMapReady
                 params.put("authorization", token);
                 params.put("version_code", String.valueOf(mPackageCode));
                 params.put("version_name", mPackageName);
+                params.put("application_id", mPackageName);
                 return params;
             }
         };
@@ -312,7 +282,7 @@ public class ConfirmationActivity extends FragmentActivity implements OnMapReady
         Bundle message = new Bundle();
         message.putParcelable("pickup_address", pickupAddress);
         message.putParcelable("dest_address", destAddress);
-        message.putString("payment", payment);
+        message.putInt("payment", payment);
         message.putParcelableArrayList("drivers", driversList);
 
         Handler handler=new Handler();
@@ -324,10 +294,7 @@ public class ConfirmationActivity extends FragmentActivity implements OnMapReady
         };
         handler.postDelayed(r, 2000);
 
-
     }
-
-
 
 
 }
