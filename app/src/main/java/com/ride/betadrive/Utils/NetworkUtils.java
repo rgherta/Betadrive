@@ -4,13 +4,17 @@ import android.location.Address;
 import android.net.Uri;
 import android.util.Log;
 
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.firebase.firestore.GeoPoint;
+import com.ride.betadrive.DataModels.MessageContract;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 public class NetworkUtils {
 
@@ -57,6 +61,22 @@ public class NetworkUtils {
                         .appendPath("users")
                         .appendPath("add")
                         .build();
+                break;
+            case "updateRideDriver":
+                builtUri = Uri.parse(FUNCTIONS_BASE).buildUpon()
+                        .appendPath("api")
+                        .appendPath("rides")
+                        .appendPath("accept")
+                        .build();
+
+                break;
+            case "sendMessage":
+                builtUri = Uri.parse(FUNCTIONS_BASE).buildUpon()
+                        .appendPath("api")
+                        .appendPath("messages")
+                        .appendPath("send")
+                        .build();
+
                 break;
         }
 
@@ -126,7 +146,53 @@ public class NetworkUtils {
     }
 
 
+    public static JSONObject acceptDriverJSON(String ride, String driver){
 
+        JSONObject requestJson = null;
+
+        try {
+
+            requestJson = new JSONObject();
+            requestJson.put("ride", ride);
+            requestJson.put("driver", driver);
+
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        Log.w(TAG, requestJson.toString());
+
+        return requestJson;
+
+    }
+
+    public static JSONObject sendMessageJSON(MessageContract message){
+
+        JSONObject requestJson = null;
+
+        try {
+
+            requestJson = new JSONObject();
+            requestJson.put("sender", message.getSender());
+            requestJson.put("receiver", message.getReceiver());
+            requestJson.put("message", message.getMessage());
+            requestJson.put("timestamp", message.getTimestamp());
+            requestJson.put("ride", message.getRide());
+
+            Log.w(TAG, requestJson.toString());
+            return requestJson;
+
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        Log.w(TAG, requestJson.toString());
+
+        return requestJson;
+
+    }
 
 
 }

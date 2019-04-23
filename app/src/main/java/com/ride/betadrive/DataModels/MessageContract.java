@@ -1,13 +1,16 @@
 package com.ride.betadrive.DataModels;
 
-import java.time.LocalTime;
+import androidx.annotation.NonNull;
+
+import java.util.Date;
 
 public class MessageContract {
 
     private String message;
     private String sender;
     private String receiver;
-    private LocalTime timestamp;
+    private Date timestamp;
+    public String mType = "outgoing";
 
     public String getRide() {
         return ride;
@@ -44,19 +47,30 @@ public class MessageContract {
     }
 
 
-    public LocalTime getTimestamp() {
+    public Date getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(LocalTime timestamp) {
+    public void setTimestamp(Date timestamp) {
         this.timestamp = timestamp;
     }
 
-    public MessageContract(String uid, String sender, String receiver, LocalTime stamp, String ride){
-        this.setRide(ride);
+    @NonNull
+    @Override
+    public String toString() {
+        return  " message: " + this.getMessage() +
+                " sender: " + this.getSender() +
+                " receiver: " + this.getReceiver() +
+                " timestamp: " + this.getTimestamp() +
+                " ride: " + this.getRide();
+    }
+
+    public MessageContract(String message, String sender, String receiver, Date stamp, String ride){
+        this.setMessage(message);
         this.setSender(sender);
         this.setReceiver(receiver);
         this.setTimestamp(stamp);
+        this.setRide(ride);
 
     }
 }

@@ -11,17 +11,26 @@ import android.os.Build;
 import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
+import androidx.lifecycle.MutableLiveData;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
+import com.ride.betadrive.DataModels.MessageContract;
 import com.ride.betadrive.R;
 import com.ride.betadrive.ResponseActivity;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.Date;
+import java.util.Map;
 
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     private static final String TAG = "MyFirebaseMsgService";
+    public static MutableLiveData BUS = new MutableLiveData<MessageContract>();
 
     /**
      * Called when message is received.
@@ -53,7 +62,26 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
         // Check if message contains a data payload.
         if (remoteMessage.getData().size() > 0) {
+            //TODO: here data payload
             Log.w(TAG, "Message data payload: " + remoteMessage.getData());
+            Map mydata = remoteMessage.getData();
+            MessageContract newMessage = new MessageContract( mydata.get("message").toString()
+                    , mydata.get("sender").toString()
+                    , mydata.get("receiver").toString()
+                    , new Date((String) mydata.get("timestamp"))
+                    , mydata.get("ride").toString()
+            );
+            newMessage.mType = "incomming";
+
+                if (BUS.hasActiveObservers()) {
+                        BUS.postValue(newMessage);
+                        Log.w(TAG, newMessage.toString());
+
+                } else {
+                    // show notification
+                }
+
+
 
             if (/* Check if data needs to be processed by long running job */ true) {
                 // For long-running tasks (10 seconds or more) use WorkManager.
@@ -68,6 +96,13 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         // Check if message contains a notification payload.
         if (remoteMessage.getNotification() != null) {
             Log.w(TAG, "Message Notification Body: " + remoteMessage.getNotification().getBody());
+
+
+            //TODO: finish up subject
+
+
+
+
         }
 
         // Also if you intend on generating your own notifications as a result of a received FCM

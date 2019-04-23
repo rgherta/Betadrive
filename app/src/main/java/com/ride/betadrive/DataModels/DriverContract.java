@@ -15,6 +15,14 @@ public class DriverContract implements Parcelable {
     private double ppk;
     private String plate;
     private short status;
+    private String ride;
+    private double rating;
+
+    public double getRating() { return rating; }
+    public void setRating(double rating) { this.rating = rating; }
+
+    public String getRide() { return ride; }
+    public void setRide(String ride) { this.ride = ride; }
 
     public double getLocLat() { return locLat; }
     public void setLocLat(double locLat) { this.locLat = locLat; }
@@ -43,7 +51,7 @@ public class DriverContract implements Parcelable {
     public void setUid(String uid) { this.uid = uid; }
 
 
-    public DriverContract( String uid, String driverName, String plate, short status, LatLng loc, String cur, double ppk ){
+    public DriverContract( String uid, String driverName, String plate, short status, LatLng loc, String cur, double ppk, String ride, double rating ){
 
         this.setUid(uid);
         this.setDriverName(driverName);
@@ -53,6 +61,8 @@ public class DriverContract implements Parcelable {
         this.setLocLong(loc.longitude);
         this.setCur(cur);
         this.setPpk(ppk);
+        this.setRide(ride);
+        this.setRating(rating);
 
     }
 
@@ -68,7 +78,9 @@ public class DriverContract implements Parcelable {
                 " locLong: " + this.getLocLong() +
                 " locLat: " + this.getLocLat() +
                 " cur: " + this.getCur() +
-                " ppk: " + this.getPpk();
+                " ppk: " + this.getPpk() +
+                " ride: " + this.getRide() +
+                " rating: " + this.getRating();
     }
 
 
@@ -87,6 +99,8 @@ public class DriverContract implements Parcelable {
         ppk = in.readDouble();
         plate = in.readString();
         status = (short) in.readInt();
+        ride = in.readString();
+        rating = in.readDouble();
 
     }
 
@@ -100,6 +114,8 @@ public class DriverContract implements Parcelable {
         dest.writeDouble(ppk);
         dest.writeString(plate);
         dest.writeInt(status);
+        dest.writeString(ride);
+        dest.writeDouble(rating);
 
     }
 

@@ -37,7 +37,6 @@
         <androidx.appcompat.widget.AppCompatTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
             android:padding="8dp"
@@ -46,7 +45,6 @@
             android:textSize="12dp"
             app:layout_constraintBottom_toBottomOf="@id/left_message"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/left_message"
             app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -68,7 +66,7 @@
             android:layout_marginBottom="8dp"
             android:maxWidth="300dp"
             android:padding="8dp"
-            android:text="Lorem ipsum dol sd asd d asddasd "
+            android:text="Lorem ipsum "
             android:textColor="@color/login"
             android:textSize="16dp"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -85,13 +83,11 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
             android:padding="8dp"
             android:text="16:34"
             android:textColor="#666"
             android:textSize="12dp"
             app:layout_constraintBottom_toBottomOf="@id/right_message"
-            app:layout_constraintEnd_toStartOf="@+id/right_message"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 

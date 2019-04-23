@@ -1,9 +1,11 @@
 package com.ride.betadrive;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.pm.PackageInfoCompat;
+import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.ViewPager;
@@ -22,7 +24,9 @@ import android.location.Address;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -42,13 +46,20 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
 import com.ride.betadrive.Adapters.ChatMessagesAdapter;
 import com.ride.betadrive.Adapters.MapViewAdapter;
 import com.ride.betadrive.DataModels.DriverContract;
+import com.ride.betadrive.DataModels.MessageContract;
 import com.ride.betadrive.Interfaces.IFragmentToActivity;
 import com.ride.betadrive.Services.HttpService;
+import com.ride.betadrive.Services.MyFirebaseMessagingService;
 import com.ride.betadrive.Utils.NetworkUtils;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -58,7 +69,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.URL;
+import java.text.DateFormat;
+import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,6 +102,7 @@ public class ResponseActivity extends AppCompatActivity  implements OnMapReadyCa
     Address destAddress;
     int payment;
     ArrayList<DriverContract> drivers;
+    ArrayList<MessageContract> chatMessages;
 
     //Recycler
     private RecyclerView recyclerView;
@@ -96,10 +112,15 @@ public class ResponseActivity extends AppCompatActivity  implements OnMapReadyCa
     SharedPreferences sharedPreferences;
     private String sharedPrefFile = "com.ride.betadrive";
 
+    FirebaseFirestore db;
+    Marker  driverMarker = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_response);
+
+        db = FirebaseFirestore.getInstance();
 
         sharedPreferences = getSharedPreferences(sharedPrefFile, MODE_PRIVATE);
         mPackageName = sharedPreferences.getString("PackageName", null);
@@ -129,7 +150,8 @@ public class ResponseActivity extends AppCompatActivity  implements OnMapReadyCa
         recyclerView.setHasFixedSize(true);
         layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
-        mAdapter = new ChatMessagesAdapter(null); //TODO: get messages arrayluist cu mesajeel
+        chatMessages = new ArrayList<MessageContract>();
+        mAdapter = new ChatMessagesAdapter(chatMessages); //TODO: get messages arrayluist cu mesajeel
         recyclerView.setAdapter(mAdapter);
 
         //Firebase
@@ -149,6 +171,16 @@ public class ResponseActivity extends AppCompatActivity  implements OnMapReadyCa
         poiList.add(new LatLng(pickupAddress.getLatitude(), pickupAddress.getLongitude()));
 
         queue = HttpService.getInstance(this).getRequestQueue();
+
+
+        MyFirebaseMessagingService.BUS.observe(this, new Observer() {
+            @Override
+            public void onChanged(Object o) {
+               MessageContract newMessage = (MessageContract) o;
+               chatMessages.add(newMessage);
+               mAdapter.notifyDataSetChanged();
+            }
+        });
 
     }
 
@@ -219,12 +251,147 @@ public class ResponseActivity extends AppCompatActivity  implements OnMapReadyCa
         };
 
         LatLngBounds bounds = builder.build();
-        mMap.addMarker(new MarkerOptions().position(new LatLng(driver.getLocLat(), driver.getLocLong())).title("Towing truck"));
+
+        MarkerOptions mo = new MarkerOptions().position(new LatLng(driver.getLocLat(), driver.getLocLong())).title("Towing truck");
+        driverMarker = mMap.addMarker(mo);
         mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 0));
 
         mMap.setPadding(50,50,50,180);
 
         findViewById(R.id.bottom_sheet).setVisibility(View.VISIBLE);
+        sendButtonListener(driver);
+
+        currentUser.getIdToken(false).addOnCompleteListener(task -> {
+
+            if (task.isSuccessful()) {
+                Log.w(TAG,"Token found single thread after force refresh " + task.getResult().getToken());
+                String token = task.getResult().getToken();
+                JSONObject mRequest = NetworkUtils.acceptDriverJSON(driver.getRide(), driver.getUid());
+                URL acceptDriverUrl = NetworkUtils.buildUrl("updateRideDriver");
+                queue.add( makeRideUpdateJSON(Request.Method.POST, acceptDriverUrl, mRequest, token) );
+            }
+        });
+
+        realtimeDriverListener(driver.getUid());
+
+    }
+
+
+    private void sendButtonListener(DriverContract driverData){
+        EditText sendButton = findViewById(R.id.send_button);
+        sendButton.setOnTouchListener((v, event) -> {
+            final int DRAWABLE_LEFT = 0;
+            final int DRAWABLE_TOP = 1;
+            final int DRAWABLE_RIGHT = 2;
+            final int DRAWABLE_BOTTOM = 3;
+
+            if(event.getAction() == MotionEvent.ACTION_UP) {
+                if(event.getRawX() >= (sendButton.getRight() - sendButton.getCompoundDrawables()[DRAWABLE_RIGHT].getBounds().width())) {
+                    Log.w(TAG, "clicked send message");
+
+                    Date currentTime = Calendar.getInstance().getTime();
+                    MessageContract newMessage = new MessageContract(sendButton.getText().toString(), currentUser.getUid(),driverData.getUid(), currentTime, driverData.getRide() );
+                    chatMessages.add(newMessage);
+
+                    mAdapter.notifyDataSetChanged();
+                    sendButton.setText("");
+
+
+
+                    currentUser.getIdToken(false).addOnCompleteListener(task -> {
+
+                        if (task.isSuccessful()) {
+                            Log.w(TAG,"Token found single thread after force refresh " + task.getResult().getToken());
+                            String token = task.getResult().getToken();
+                            JSONObject mRequest = NetworkUtils.sendMessageJSON(newMessage);
+                            URL messageUrl = NetworkUtils.buildUrl("sendMessage");
+                            queue.add( sendMessageRequest(Request.Method.POST, messageUrl, mRequest, token) );
+                        }
+                    });
+
+
+
+                    return true;
+                }
+            }
+            return false;
+        });
+    }
+
+
+    private JsonObjectRequest makeRideUpdateJSON(int method, URL url, JSONObject myRequest, String token){
+
+        return new JsonObjectRequest(method
+                , url.toString()
+                , myRequest
+                , response -> {
+            Log.w(TAG, response.toString());
+        }
+                , error -> {
+            Log.w(TAG, error.toString());
+        }
+
+        ){
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> params = new HashMap<>();
+                params.put("authorization", token);
+                params.put("version_code", String.valueOf(mPackageCode));
+                params.put("version_name", mPackageName);
+                params.put("application_id", mPackageName);
+                return params;
+            }
+        };
+
+
+    }
+
+
+
+    private JsonObjectRequest sendMessageRequest(int method, URL url, JSONObject myRequest, String token){
+
+        return new JsonObjectRequest(method
+                , url.toString()
+                , myRequest
+                , response -> {
+            Log.w(TAG, response.toString());
+        }
+                , error -> {
+            Log.w(TAG, error.toString());
+        }
+
+        ){
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> params = new HashMap<>();
+                params.put("authorization", token);
+                params.put("version_code", String.valueOf(mPackageCode));
+                params.put("version_name", mPackageName);
+                params.put("application_id", mPackageName);
+                return params;
+            }
+        };
+
+
+    }
+
+
+    private void realtimeDriverListener(String driverUid){
+        final DocumentReference docRef = db.collection("drivers").document(driverUid);
+        docRef.addSnapshotListener((snapshot, e) -> {
+            if (e != null) {
+                Log.w(TAG, "Listen failed.", e);
+                return;
+            }
+
+            if (snapshot != null && snapshot.exists()) {
+                Log.w(TAG, "Current data: " + snapshot.getData());
+                driverMarker.setPosition( new LatLng(snapshot.getGeoPoint("Loc").getLatitude(), snapshot.getGeoPoint("Loc").getLongitude()));
+
+            } else {
+                Log.w(TAG, "Current data: null");
+            }
+        });
 
     }
 

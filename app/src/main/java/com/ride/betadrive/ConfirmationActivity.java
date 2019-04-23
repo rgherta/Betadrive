@@ -102,7 +102,8 @@ public class ConfirmationActivity extends FragmentActivity implements OnMapReady
         destTxt.setText(destAddress.getAddressLine(0));
 
         //get directions
-        queue = HttpService.getInstance(this).getRequestQueue();
+       // queue = HttpService.getInstance(this).getRequestQueue();
+        queue = Volley.newRequestQueue(this);
 
         Log.w(TAG, pickupAddress.toString());
         Log.w(TAG, destAddress.toString());
@@ -253,6 +254,7 @@ public class ConfirmationActivity extends FragmentActivity implements OnMapReady
 
     }
 
+
     private void startResponseActivity(JSONObject response){
 
         ArrayList<DriverContract> driversList = new ArrayList<>();
@@ -270,6 +272,8 @@ public class ConfirmationActivity extends FragmentActivity implements OnMapReady
                         , new LatLng( location.getDouble("_latitude"), location.getDouble("_longitude") )
                         , driversJson.getJSONObject(i).getString("Cur")
                         , driversJson.getJSONObject(i).getDouble("PPK")
+                        , driversJson.getJSONObject(i).getString("ride")
+                        , driversJson.getJSONObject(i).getDouble("Rating")
                 );
                 driversList.add(driver);
             }

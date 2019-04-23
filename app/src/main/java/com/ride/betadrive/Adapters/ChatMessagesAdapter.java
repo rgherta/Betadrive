@@ -1,5 +1,6 @@
 package com.ride.betadrive.Adapters;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 
 public class ChatMessagesAdapter extends RecyclerView.Adapter<ChatMessagesAdapter.MyViewHolder> {
     private ArrayList<MessageContract> mDataset;
+    private static final String TAG = ChatMessagesAdapter.class.getSimpleName();
 
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
@@ -60,32 +62,27 @@ public class ChatMessagesAdapter extends RecyclerView.Adapter<ChatMessagesAdapte
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
         MessageContract mMessage = mDataset.get(position);
-
-        holder.rightMsgLayout.setVisibility(View.VISIBLE);
-        holder.leftMsgLayout.setVisibility(View.GONE);
-        holder.rightMsgTextView.setText(mMessage.getMessage());
+        Log.w(TAG, mMessage.toString());
 
 
-//        // If the message is a received message.
-//        if(msgDto.MSG_TYPE_RECEIVED.equals(msgDto.getMsgType()))
-//        {
-//            // Show received message in left linearlayout.
-//            holder.leftMsgLayout.setVisibility(LinearLayout.VISIBLE);
-//            holder.leftMsgTextView.setText(msgDto.getMsgContent());
-//            // Remove left linearlayout.The value should be GONE, can not be INVISIBLE
-//            // Otherwise each iteview's distance is too big.
-//            holder.rightMsgLayout.setVisibility(LinearLayout.GONE);
-//        }
-//        // If the message is a sent message.
-//        else if(msgDto.MSG_TYPE_SENT.equals(msgDto.getMsgType()))
-//        {
-//            // Show sent message in right linearlayout.
-//            holder.rightMsgLayout.setVisibility(LinearLayout.VISIBLE);
-//            holder.rightMsgTextView.setText(msgDto.getMsgContent());
-//            // Remove left linearlayout.The value should be GONE, can not be INVISIBLE
-//            // Otherwise each iteview's distance is too big.
-//            holder.leftMsgLayout.setVisibility(LinearLayout.GONE);
-//        }
+
+
+        // If the message is a received message.
+        if(mMessage.mType.equals("incomming"))
+        {
+            // Show received message in left linearlayout.
+            holder.leftMsgLayout.setVisibility(LinearLayout.VISIBLE);
+            holder.leftMsgTextView.setText(mMessage.getMessage());
+            holder.rightMsgLayout.setVisibility(LinearLayout.GONE);
+        }
+        // If the message is a sent message.
+        else if(mMessage.mType.equals("outgoing"))
+        {
+            // Show sent message in right linearlayout.
+            holder.rightMsgLayout.setVisibility(View.VISIBLE);
+            holder.leftMsgLayout.setVisibility(View.GONE);
+            holder.rightMsgTextView.setText(mMessage.getMessage());
+        }
 
 
     }

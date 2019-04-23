@@ -4,11 +4,14 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 
 import androidx.annotation.NonNull;
 
+import com.android.volley.Request;
 import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.ride.betadrive.DataModels.AccountContract;
 import com.ride.betadrive.MapsActivity;
 import com.ride.betadrive.R;
@@ -17,6 +20,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.ride.betadrive.Services.HttpService;
+import com.ride.betadrive.Utils.NetworkUtils;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -32,6 +37,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -43,8 +49,13 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONObject;
+
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
@@ -78,11 +89,28 @@ public class RegistrationActivity extends AppCompatActivity implements LoaderCal
     private View mLoginFormView;
     private FirebaseAuth auth;
 
+    SharedPreferences sharedPreferences;
+    private String sharedPrefFile = "com.ride.betadrive";
+    private RequestQueue queue;
+
+    String mApplicationId;
+    String mPackageName;
+    int mPackageCode;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_registration);
+
+        sharedPreferences = getSharedPreferences(sharedPrefFile, MODE_PRIVATE);
+        mPackageName = sharedPreferences.getString("PackageName", null);
+        mPackageCode = sharedPreferences.getInt("PackageCode", 0);
+        mApplicationId = sharedPreferences.getString("ApplicationId", null);
+
+
+        queue = HttpService.getInstance(this).getRequestQueue();
+
 
         auth = FirebaseAuth.getInstance();
 
@@ -382,12 +410,56 @@ public class RegistrationActivity extends AppCompatActivity implements LoaderCal
                                 Toast.makeText(RegistrationActivity.this, "Authentication failed." + task.getException(),
                                         Toast.LENGTH_SHORT).show();
                             } else {
-                                if(!auth.getInstance().getCurrentUser().isEmailVerified()) auth.getInstance().getCurrentUser().sendEmailVerification();
+                               // if(!auth.getInstance().getCurrentUser().isEmailVerified()) auth.getInstance().getCurrentUser().sendEmailVerification();
+                                boolean isNew = task.getResult().getAdditionalUserInfo().isNewUser();
+                                if(isNew){
+                                    auth.getInstance().getCurrentUser().getIdToken(false).addOnCompleteListener(tokenTask -> {
+
+                                        if (tokenTask.isSuccessful()) {
+
+                                            Log.w(TAG,"Token found single thread after force refresh " + tokenTask.getResult().getToken());
+                                            String token = tokenTask.getResult().getToken();
+                                            JSONObject mRequest = NetworkUtils.createAddUserJSON(auth.getInstance().getCurrentUser().getUid(), sharedPreferences.getString("FcmToken", null), auth.getInstance().getCurrentUser().getEmail());
+                                            URL addUserUrl = NetworkUtils.buildUrl("addUser");
+                                            queue.add( makeJsonRequest(Request.Method.PUT, addUserUrl, mRequest, token) );
+                                        }
+                                    });
+
+
+
+                                }
                             }
                         }
                     });
 
             return true;
+
+        }
+
+        private JsonObjectRequest makeJsonRequest(int method, URL url, JSONObject myRequest, String token){
+
+            return new JsonObjectRequest(method
+                    , url.toString()
+                    , myRequest
+                    , response -> {
+                Log.w(TAG, response.toString());
+            }
+                    , error -> {
+                Log.w(TAG, error.toString());
+            }
+
+            ){
+                @Override
+                public Map<String, String> getHeaders() {
+                    Map<String, String> params = new HashMap<>();
+                    params.put("authorization", token);
+                    params.put("version_code", String.valueOf(sharedPreferences.getInt("PackageCode", 0)));
+                    params.put("version_name", sharedPreferences.getString("PackageName", null));
+                    params.put("application_id", sharedPreferences.getString("ApplicationId", null));
+                    return params;
+                }
+            };
+
 
         }
 

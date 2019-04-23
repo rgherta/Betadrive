@@ -61,6 +61,9 @@ public class MapViewAdapter extends PagerAdapter {
         TextView driverName = itemView.findViewById(R.id.driver_name);
         driverName.setText(driversList.get(position).getDriverName());
 
+        TextView ratingView = itemView.findViewById(R.id.rating);
+        ratingView.setText( String.valueOf(driversList.get(position).getRating()) );
+
         Button acceptButton = itemView.findViewById(R.id.accept_ride);
         acceptButton.setOnClickListener(v -> {
             mCallback.acceptDriver(driversList.get(position));
