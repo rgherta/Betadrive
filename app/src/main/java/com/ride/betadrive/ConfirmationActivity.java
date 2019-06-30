@@ -1,14 +1,11 @@
 package com.ride.betadrive;
 
-import androidx.core.content.pm.PackageInfoCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.location.Address;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
@@ -16,7 +13,6 @@ import android.widget.TextView;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
@@ -24,7 +20,6 @@ import com.github.jorgecastilloprz.FABProgressCircle;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.ride.betadrive.DataModels.DriverContract;
-import com.ride.betadrive.Services.HttpService;
 import com.ride.betadrive.Utils.NetworkUtils;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -42,12 +37,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.URL;
-import java.sql.Driver;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 public class ConfirmationActivity extends FragmentActivity implements OnMapReadyCallback, View.OnClickListener {
 
@@ -262,18 +255,18 @@ public class ConfirmationActivity extends FragmentActivity implements OnMapReady
         try {
             JSONArray driversJson = response.getJSONArray("drivers");
             for (int i = 0; i < driversJson.length(); i++ ) {
-                JSONObject location = driversJson.getJSONObject(i).getJSONObject("Loc");
+                JSONObject location = driversJson.getJSONObject(i).getJSONObject("loc");
 
                 DriverContract driver = new DriverContract(
                         driversJson.getJSONObject(i).getString("uid")
-                        , driversJson.getJSONObject(i).getString("Name")
-                        , driversJson.getJSONObject(i).getString("Plate")
-                        , (short) driversJson.getJSONObject(i).getInt("Status")
+                        , driversJson.getJSONObject(i).getString("name")
+                        , driversJson.getJSONObject(i).getString("plate")
+                        , (short) driversJson.getJSONObject(i).getInt("status")
                         , new LatLng( location.getDouble("_latitude"), location.getDouble("_longitude") )
-                        , driversJson.getJSONObject(i).getString("Cur")
-                        , driversJson.getJSONObject(i).getDouble("PPK")
+                        , driversJson.getJSONObject(i).getString("cur")
+                        , driversJson.getJSONObject(i).getDouble("ppk")
                         , driversJson.getJSONObject(i).getString("ride")
-                        , driversJson.getJSONObject(i).getDouble("Rating")
+                        , driversJson.getJSONObject(i).getDouble("rating")
                 );
                 driversList.add(driver);
             }
@@ -299,6 +292,11 @@ public class ConfirmationActivity extends FragmentActivity implements OnMapReady
         handler.postDelayed(r, 2000);
 
     }
+
+
+
+
+
 
 
 }

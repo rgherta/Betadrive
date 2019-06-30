@@ -5,6 +5,8 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@color/white"
+    android:paddingLeft="16dp"
+    android:paddingRight="8dp"
     >
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -21,7 +23,11 @@
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"
             android:maxWidth="300dp"
-            android:padding="8dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:paddingLeft="16dp"
+            android:paddingRight="8dp"
+
             android:text="Lorem ipsum dol sd asd d asdd asdasd asd asd as d as as  d as d as d as asd "
             android:textColor="@color/login"
             android:textSize="16dp"
@@ -29,7 +35,7 @@
             app:layout_constraintTop_toTopOf="parent"
             tools:ignore="MissingConstraints"
             tools:layout_editor_absoluteX="8dp"
-            android:background="@drawable/rounded_plan"
+            android:background="@drawable/message_incoming"
             android:backgroundTint="#D0E0EB"
             />
 
@@ -65,7 +71,10 @@
             android:layout_marginEnd="8dp"
             android:layout_marginBottom="8dp"
             android:maxWidth="300dp"
-            android:padding="8dp"
+            android:paddingRight="16dp"
+            android:paddingLeft="8dp"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
             android:text="Lorem ipsum "
             android:textColor="@color/login"
             android:textSize="16dp"
@@ -73,7 +82,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:ignore="MissingConstraints"
-            android:background="@drawable/rounded_plan"
+            android:background="@drawable/message_outgoing"
             android:backgroundTint="#B6D8C0"
             />
 

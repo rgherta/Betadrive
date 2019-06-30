@@ -172,7 +172,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                                     String token = tokenTask.getResult().getToken();
                                     JSONObject mRequest = NetworkUtils.createAddUserJSON(mAuth.getCurrentUser().getUid(), sharedPreferences.getString("FcmToken", null), mAuth.getCurrentUser().getEmail());
                                     URL addUserUrl = NetworkUtils.buildUrl("addUser");
-                                    queue.add( makeJsonRequest(Request.Method.PUT, addUserUrl, mRequest, token) );
+                                    queue.add( makeJsonRequest(Request.Method.POST, addUserUrl, mRequest, token) );
                                 }
                             });
 

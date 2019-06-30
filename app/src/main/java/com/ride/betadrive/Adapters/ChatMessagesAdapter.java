@@ -83,8 +83,6 @@ public class ChatMessagesAdapter extends RecyclerView.Adapter<ChatMessagesAdapte
             holder.leftMsgLayout.setVisibility(View.GONE);
             holder.rightMsgTextView.setText(mMessage.getMessage());
         }
-
-
     }
 
     // Return the size of your dataset (invoked by the layout manager)

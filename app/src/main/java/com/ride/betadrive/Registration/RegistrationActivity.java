@@ -115,19 +115,16 @@ public class RegistrationActivity extends AppCompatActivity implements LoaderCal
         auth = FirebaseAuth.getInstance();
 
         // Set up the login form.
-        mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
+        mEmailView = findViewById(R.id.email);
         populateAutoComplete();
 
         mPasswordView = (EditText) findViewById(R.id.password);
-        mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
-                if (id == EditorInfo.IME_ACTION_DONE || id == EditorInfo.IME_NULL) {
-                    attemptRegistration();
-                    return true;
-                }
-                return false;
+        mPasswordView.setOnEditorActionListener((textView, id, keyEvent) -> {
+            if (id == EditorInfo.IME_ACTION_DONE || id == EditorInfo.IME_NULL) {
+                attemptRegistration();
+                return true;
             }
+            return false;
         });
 
         Button mEmailSignInButton = findViewById(R.id.email_sign_in_button);
@@ -159,13 +156,7 @@ public class RegistrationActivity extends AppCompatActivity implements LoaderCal
         }
         if (shouldShowRequestPermissionRationale(READ_CONTACTS)) {
             Snackbar.make(mEmailView, R.string.permission_rationale, Snackbar.LENGTH_INDEFINITE)
-                    .setAction(android.R.string.ok, new View.OnClickListener() {
-                        @Override
-                        @TargetApi(Build.VERSION_CODES.M)
-                        public void onClick(View v) {
-                            requestPermissions(new String[]{READ_CONTACTS}, REQUEST_READ_CONTACTS);
-                        }
-                    });
+                    .setAction(android.R.string.ok, v -> requestPermissions(new String[]{READ_CONTACTS}, REQUEST_READ_CONTACTS));
         } else {
             requestPermissions(new String[]{READ_CONTACTS}, REQUEST_READ_CONTACTS);
         }
@@ -398,36 +389,33 @@ public class RegistrationActivity extends AppCompatActivity implements LoaderCal
 
 
             auth.createUserWithEmailAndPassword(mEmail, mPassword)
-                    .addOnCompleteListener(RegistrationActivity.this, new OnCompleteListener<AuthResult>() {
-                        @Override
-                        public void onComplete(@NonNull Task<AuthResult> task) {
-                            Toast.makeText(RegistrationActivity.this, "createUserWithEmail:onComplete:" + task.isSuccessful(), Toast.LENGTH_SHORT).show();
-                            // If sign in fails, display a message to the user. If sign in succeeds
-                            // the auth state listener will be notified and logic to handle the
-                            // signed in user can be handled in the listener.
-                            if (!task.isSuccessful()) {
-                                showProgress(false);
-                                Toast.makeText(RegistrationActivity.this, "Authentication failed." + task.getException(),
-                                        Toast.LENGTH_SHORT).show();
-                            } else {
-                               // if(!auth.getInstance().getCurrentUser().isEmailVerified()) auth.getInstance().getCurrentUser().sendEmailVerification();
-                                boolean isNew = task.getResult().getAdditionalUserInfo().isNewUser();
-                                if(isNew){
-                                    auth.getInstance().getCurrentUser().getIdToken(false).addOnCompleteListener(tokenTask -> {
+                    .addOnCompleteListener(RegistrationActivity.this, task -> {
+                        Toast.makeText(RegistrationActivity.this, "createUserWithEmail:onComplete:" + task.isSuccessful(), Toast.LENGTH_SHORT).show();
+                        // If sign in fails, display a message to the user. If sign in succeeds
+                        // the auth state listener will be notified and logic to handle the
+                        // signed in user can be handled in the listener.
+                        if (!task.isSuccessful()) {
+                            showProgress(false);
+                            Toast.makeText(RegistrationActivity.this, "Authentication failed." + task.getException(),
+                                    Toast.LENGTH_SHORT).show();
+                        } else {
+                           // if(!auth.getInstance().getCurrentUser().isEmailVerified()) auth.getInstance().getCurrentUser().sendEmailVerification();
+                            boolean isNew = task.getResult().getAdditionalUserInfo().isNewUser();
+                            if(isNew){
+                                auth.getInstance().getCurrentUser().getIdToken(false).addOnCompleteListener(tokenTask -> {
 
-                                        if (tokenTask.isSuccessful()) {
+                                    if (tokenTask.isSuccessful()) {
 
-                                            Log.w(TAG,"Token found single thread after force refresh " + tokenTask.getResult().getToken());
-                                            String token = tokenTask.getResult().getToken();
-                                            JSONObject mRequest = NetworkUtils.createAddUserJSON(auth.getInstance().getCurrentUser().getUid(), sharedPreferences.getString("FcmToken", null), auth.getInstance().getCurrentUser().getEmail());
-                                            URL addUserUrl = NetworkUtils.buildUrl("addUser");
-                                            queue.add( makeJsonRequest(Request.Method.PUT, addUserUrl, mRequest, token) );
-                                        }
-                                    });
+                                        Log.w(TAG,"Token found single thread after force refresh " + tokenTask.getResult().getToken());
+                                        String token = tokenTask.getResult().getToken();
+                                        JSONObject mRequest = NetworkUtils.createAddUserJSON(auth.getInstance().getCurrentUser().getUid(), sharedPreferences.getString("FcmToken", null), auth.getInstance().getCurrentUser().getEmail());
+                                        URL addUserUrl = NetworkUtils.buildUrl("addUser");
+                                        queue.add( makeJsonRequest(Request.Method.POST, addUserUrl, mRequest, token) );
+                                    }
+                                });
 
 
 
-                                }
                             }
                         }
                     });

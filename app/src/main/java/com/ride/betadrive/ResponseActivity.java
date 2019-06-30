@@ -173,13 +173,11 @@ public class ResponseActivity extends AppCompatActivity  implements OnMapReadyCa
         queue = HttpService.getInstance(this).getRequestQueue();
 
 
-        MyFirebaseMessagingService.BUS.observe(this, new Observer() {
-            @Override
-            public void onChanged(Object o) {
-               MessageContract newMessage = (MessageContract) o;
-               chatMessages.add(newMessage);
-               mAdapter.notifyDataSetChanged();
-            }
+        MyFirebaseMessagingService.BUS.observe(this, o -> {
+           MessageContract newMessage = (MessageContract) o;
+           chatMessages.add(newMessage);
+           mAdapter.notifyDataSetChanged();
+           recyclerView.smoothScrollToPosition(mAdapter.getItemCount());
         });
 
     }
@@ -230,6 +228,8 @@ public class ResponseActivity extends AppCompatActivity  implements OnMapReadyCa
         if (queue != null) {
             queue.cancelAll(TAG);
         }
+
+
     }
 
     @Override
@@ -292,8 +292,8 @@ public class ResponseActivity extends AppCompatActivity  implements OnMapReadyCa
                     Date currentTime = Calendar.getInstance().getTime();
                     MessageContract newMessage = new MessageContract(sendButton.getText().toString(), currentUser.getUid(),driverData.getUid(), currentTime, driverData.getRide() );
                     chatMessages.add(newMessage);
-
                     mAdapter.notifyDataSetChanged();
+                    recyclerView.smoothScrollToPosition(mAdapter.getItemCount());
                     sendButton.setText("");
 
 
@@ -386,7 +386,7 @@ public class ResponseActivity extends AppCompatActivity  implements OnMapReadyCa
 
             if (snapshot != null && snapshot.exists()) {
                 Log.w(TAG, "Current data: " + snapshot.getData());
-                driverMarker.setPosition( new LatLng(snapshot.getGeoPoint("Loc").getLatitude(), snapshot.getGeoPoint("Loc").getLongitude()));
+                driverMarker.setPosition( new LatLng(snapshot.getGeoPoint("loc").getLatitude(), snapshot.getGeoPoint("loc").getLongitude()));
 
             } else {
                 Log.w(TAG, "Current data: null");
