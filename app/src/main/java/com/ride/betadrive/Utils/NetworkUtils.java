@@ -107,7 +107,9 @@ public class NetworkUtils {
             destination.put("long", destAddress.getLongitude());
             requestJson.put("payment", payment);
             requestJson.put("pickup", pickup);
+            requestJson.put("pickup_str", pickupAddress.getAddressLine(0));
             requestJson.put("destination", destination);
+            requestJson.put("destination_str", destAddress.getAddressLine(0));
             requestJson.put("requester", requester);
             Log.w(TAG, "instantiated here");
 

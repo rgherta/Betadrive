@@ -67,6 +67,7 @@ public class ChatMessagesAdapter extends RecyclerView.Adapter<ChatMessagesAdapte
 
 
 
+
         // If the message is a received message.
         if(mMessage.mType.equals("incomming"))
         {
