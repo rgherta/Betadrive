@@ -68,6 +68,10 @@ public class ConfirmationActivity extends FragmentActivity implements OnMapReady
     SharedPreferences sharedPreferences;
     private String sharedPrefFile = "com.ride.betadrive";
 
+    String points = "";
+    int distance = 0;
+    int duration = 0;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,7 +121,10 @@ public class ConfirmationActivity extends FragmentActivity implements OnMapReady
                     try {
                         mResponse = new JSONObject(response.toString());
 
-                        String points = mResponse.getJSONArray("routes").getJSONObject(0).getJSONObject("overview_polyline").getString("points");
+                        points = mResponse.getJSONArray("routes").getJSONObject(0).getJSONObject("overview_polyline").getString("points");
+                        distance = mResponse.getJSONArray("routes").getJSONObject(0).getJSONArray("legs").getJSONObject(0).getJSONObject("distance").getInt("value");
+                        duration = mResponse.getJSONArray("routes").getJSONObject(0).getJSONArray("legs").getJSONObject(0).getJSONObject("duration").getInt("value");
+
                         List<LatLng> pointsArray = PolyUtil.decode(points);
 
                         LatLngBounds.Builder builder = new LatLngBounds.Builder();
@@ -208,7 +215,7 @@ public class ConfirmationActivity extends FragmentActivity implements OnMapReady
             if (task.isSuccessful()) {
                 Log.w(TAG,"Token found single thread after force refresh " + task.getResult().getToken());
                 String token = task.getResult().getToken();
-                JSONObject mRequest = NetworkUtils.createRideRequest(pickupAddress, destAddress, payment, currentUser.getUid());
+                JSONObject mRequest = NetworkUtils.createRideRequest(pickupAddress, destAddress, points, distance, duration, payment, currentUser.getUid());
                 URL hailUrl = NetworkUtils.buildUrl("hail");
                 queue.add( makeJsonRequest(Request.Method.POST, hailUrl, mRequest, token) );
             }

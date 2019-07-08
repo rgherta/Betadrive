@@ -91,7 +91,7 @@ public class NetworkUtils {
 
     }
 
-    public static JSONObject createRideRequest(Address pickupAddress, Address destAddress, int payment, String requester){
+    public static JSONObject createRideRequest(Address pickupAddress, Address destAddress, String points, int  distance, int duration, int payment, String requester){
 
         JSONObject requestJson = null;
 
@@ -110,6 +110,9 @@ public class NetworkUtils {
             requestJson.put("pickup_str", pickupAddress.getAddressLine(0));
             requestJson.put("destination", destination);
             requestJson.put("destination_str", destAddress.getAddressLine(0));
+            requestJson.put("points", points);
+            requestJson.put("distance", distance);
+            requestJson.put("duration", duration);
             requestJson.put("requester", requester);
             Log.w(TAG, "instantiated here");
 
