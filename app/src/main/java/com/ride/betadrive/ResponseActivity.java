@@ -55,6 +55,7 @@ import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
 import com.ride.betadrive.Adapters.ChatMessagesAdapter;
 import com.ride.betadrive.Adapters.MapViewAdapter;
+import com.ride.betadrive.DataModels.AcceptanceContract;
 import com.ride.betadrive.DataModels.DriverContract;
 import com.ride.betadrive.DataModels.MessageContract;
 import com.ride.betadrive.Interfaces.IFragmentToActivity;
@@ -101,7 +102,7 @@ public class ResponseActivity extends AppCompatActivity  implements OnMapReadyCa
     Address pickupAddress;
     Address destAddress;
     int payment;
-    ArrayList<DriverContract> drivers;
+    ArrayList<AcceptanceContract> drivers;
     ArrayList<MessageContract> chatMessages;
 
     //Recycler
@@ -233,7 +234,7 @@ public class ResponseActivity extends AppCompatActivity  implements OnMapReadyCa
     }
 
     @Override
-    public void acceptDriver(DriverContract driver) {
+    public void acceptDriver(AcceptanceContract driver) {
         Log.w(TAG, driver.toString());
         findViewById(R.id.drivers_pager).setVisibility(View.GONE);
 
@@ -266,18 +267,18 @@ public class ResponseActivity extends AppCompatActivity  implements OnMapReadyCa
             if (task.isSuccessful()) {
                 Log.w(TAG,"Token found single thread after force refresh " + task.getResult().getToken());
                 String token = task.getResult().getToken();
-                JSONObject mRequest = NetworkUtils.acceptDriverJSON(driver.getRide(), driver.getUid());
+                JSONObject mRequest = NetworkUtils.acceptDriverJSON(driver.getRide(), driver.getDriver());
                 URL acceptDriverUrl = NetworkUtils.buildUrl("updateRideDriver");
                 queue.add( makeRideUpdateJSON(Request.Method.POST, acceptDriverUrl, mRequest, token) );
             }
         });
 
-        realtimeDriverListener(driver.getUid());
+        realtimeDriverListener(driver.getDriver());
 
     }
 
 
-    private void sendButtonListener(DriverContract driverData){
+    private void sendButtonListener(AcceptanceContract driverData){
         EditText sendButton = findViewById(R.id.send_button);
         sendButton.setOnTouchListener((v, event) -> {
             final int DRAWABLE_LEFT = 0;
@@ -290,7 +291,7 @@ public class ResponseActivity extends AppCompatActivity  implements OnMapReadyCa
                     Log.w(TAG, "clicked send message");
 
                     Date currentTime = Calendar.getInstance().getTime();
-                    MessageContract newMessage = new MessageContract(sendButton.getText().toString(), currentUser.getUid(),driverData.getUid(), currentTime, driverData.getRide() );
+                    MessageContract newMessage = new MessageContract(sendButton.getText().toString(), currentUser.getUid(),driverData.getDriver(), currentTime, driverData.getRide() );
                     chatMessages.add(newMessage);
                     mAdapter.notifyDataSetChanged();
                     recyclerView.smoothScrollToPosition(mAdapter.getItemCount());

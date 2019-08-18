@@ -15,14 +15,14 @@ public class DriverContract implements Parcelable {
     private double ppk;
     private String plate;
     private short status;
-    private String ride;
+    private int rides;
     private double rating;
 
     public double getRating() { return rating; }
     public void setRating(double rating) { this.rating = rating; }
 
-    public String getRide() { return ride; }
-    public void setRide(String ride) { this.ride = ride; }
+    public int getRides() { return rides; }
+    public void setRides(int rides) { this.rides = rides; }
 
     public double getLocLat() { return locLat; }
     public void setLocLat(double locLat) { this.locLat = locLat; }
@@ -51,7 +51,7 @@ public class DriverContract implements Parcelable {
     public void setUid(String uid) { this.uid = uid; }
 
 
-    public DriverContract( String uid, String driverName, String plate, short status, LatLng loc, String cur, double ppk, String ride, double rating ){
+    public DriverContract( String uid, String driverName, String plate, short status, LatLng loc, String cur, double ppk, int rides, double rating ){
 
         this.setUid(uid);
         this.setDriverName(driverName);
@@ -61,7 +61,7 @@ public class DriverContract implements Parcelable {
         this.setLocLong(loc.longitude);
         this.setCur(cur);
         this.setPpk(ppk);
-        this.setRide(ride);
+        this.setRides(rides);
         this.setRating(rating);
 
     }
@@ -79,7 +79,7 @@ public class DriverContract implements Parcelable {
                 " locLat: " + this.getLocLat() +
                 " cur: " + this.getCur() +
                 " ppk: " + this.getPpk() +
-                " ride: " + this.getRide() +
+                " rides: " + this.getRides() +
                 " rating: " + this.getRating();
     }
 
@@ -99,7 +99,7 @@ public class DriverContract implements Parcelable {
         ppk = in.readDouble();
         plate = in.readString();
         status = (short) in.readInt();
-        ride = in.readString();
+        rides = in.readInt();
         rating = in.readDouble();
 
     }
@@ -114,7 +114,7 @@ public class DriverContract implements Parcelable {
         dest.writeDouble(ppk);
         dest.writeString(plate);
         dest.writeInt(status);
-        dest.writeString(ride);
+        dest.writeInt(rides);
         dest.writeDouble(rating);
 
     }

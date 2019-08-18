@@ -15,10 +15,79 @@
       },
       "oauth_client": [
         {
+          "client_id": "756014264865-kvev2r9vpb3fenrr2dpt1vscqara3e4r.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ride.betadrive",
+            "certificate_hash": "59d1104534c6b0c0fb31f3da997a41cae9092ee4"
+          }
+        },
+        {
+          "client_id": "756014264865-6ljh4ac7f404oqiac9hlq8v4j4ss5rsr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ride.betadrive",
+            "certificate_hash": "79f04b005d51921957aca58ab899bb99e7f29f93"
+          }
+        },
+        {
+          "client_id": "756014264865-2r27llmulvci97a56upd18vhf3n56kbb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ride.betadrive",
+            "certificate_hash": "7c29418b5f02ed0f3fc60a8550e46530f4494d66"
+          }
+        },
+        {
           "client_id": "756014264865-gja089v8mi5l9hmea264vsp4etonr014.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.ride.betadrive",
+            "certificate_hash": "abc91786e71465ffeea2e05bb27e92f6eed2b680"
+          }
+        },
+        {
+          "client_id": "756014264865-kqppcb66t2uh5ud69eo6pp7ev42r7edn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBw2XPJZ2NKb9AWBeWHT-Ka50xEhQxs9uo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "756014264865-kqppcb66t2uh5ud69eo6pp7ev42r7edn.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:756014264865:android:aa635c7fdf2e61df",
+        "android_client_info": {
+          "package_name": "com.ride.driverapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "756014264865-c4aa6b1bqcbtduqr0dvqij46le7l7hkg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ride.driverapp",
+            "certificate_hash": "59d1104534c6b0c0fb31f3da997a41cae9092ee4"
+          }
+        },
+        {
+          "client_id": "756014264865-g8pipgi9e20i6168ofv4dmmdhjv058ql.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ride.driverapp",
             "certificate_hash": "abc91786e71465ffeea2e05bb27e92f6eed2b680"
           }
         },

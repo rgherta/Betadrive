@@ -66,6 +66,7 @@ public class NetworkUtils {
                 builtUri = Uri.parse(FUNCTIONS_BASE).buildUpon()
                         .appendPath("api")
                         .appendPath("rides")
+                        .appendPath("customer")
                         .appendPath("accept")
                         .build();
 
@@ -78,6 +79,13 @@ public class NetworkUtils {
                         .build();
 
                 break;
+
+            case "checkDrivers":
+                builtUri = Uri.parse(FUNCTIONS_BASE).buildUpon()
+                        .appendPath("api")
+                        .appendPath("rides")
+                        .appendPath("checkdrivers")
+                        .build();
         }
 
 
@@ -103,8 +111,10 @@ public class NetworkUtils {
 
             pickup.put("lat", pickupAddress.getLatitude());
             pickup.put("long", pickupAddress.getLongitude());
+
             destination.put("lat", destAddress.getLatitude());
             destination.put("long", destAddress.getLongitude());
+
             requestJson.put("payment", payment);
             requestJson.put("pickup", pickup);
             requestJson.put("pickup_str", pickupAddress.getAddressLine(0));
@@ -115,6 +125,34 @@ public class NetworkUtils {
             requestJson.put("duration", duration);
             requestJson.put("requester", requester);
             Log.w(TAG, "instantiated here");
+
+            String geohashPickup = GeohashUtils.encode( pickupAddress.getLatitude(), pickupAddress.getLongitude() );
+            String geohashDestination = GeohashUtils.encode( destAddress.getLatitude(), destAddress.getLongitude() );
+            requestJson.put("hashp", geohashPickup);
+            requestJson.put("hashd", geohashDestination);
+
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        Log.w(TAG, requestJson.toString());
+
+        return requestJson;
+
+    }
+
+
+
+    public static JSONObject createCheckRideRequest(String requester, String ride){
+
+        JSONObject requestJson = null;
+
+        try {
+
+            requestJson = new JSONObject();
+            requestJson.put("requester", requester);
+            requestJson.put("ride", ride);
 
 
         } catch (JSONException e) {

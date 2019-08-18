@@ -6,10 +6,12 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.location.Address;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -19,6 +21,7 @@ import com.android.volley.toolbox.Volley;
 import com.github.jorgecastilloprz.FABProgressCircle;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.ride.betadrive.DataModels.AcceptanceContract;
 import com.ride.betadrive.DataModels.DriverContract;
 import com.ride.betadrive.Utils.NetworkUtils;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -63,6 +66,7 @@ public class ConfirmationActivity extends FragmentActivity implements OnMapReady
     String mPackageName;
     String mApplicationId;
     int mPackageCode;
+    String token;
 
     FABProgressCircle circleFab;
     SharedPreferences sharedPreferences;
@@ -71,6 +75,8 @@ public class ConfirmationActivity extends FragmentActivity implements OnMapReady
     String points = "";
     int distance = 0;
     int duration = 0;
+
+    CountDownTimer timer;
 
 
     @Override
@@ -215,6 +221,7 @@ public class ConfirmationActivity extends FragmentActivity implements OnMapReady
             if (task.isSuccessful()) {
                 Log.w(TAG,"Token found single thread after force refresh " + task.getResult().getToken());
                 String token = task.getResult().getToken();
+                this.token = token;
                 JSONObject mRequest = NetworkUtils.createRideRequest(pickupAddress, destAddress, points, distance, duration, payment, currentUser.getUid());
                 URL hailUrl = NetworkUtils.buildUrl("hail");
                 queue.add( makeJsonRequest(Request.Method.POST, hailUrl, mRequest, token) );
@@ -233,22 +240,33 @@ public class ConfirmationActivity extends FragmentActivity implements OnMapReady
                 , myRequest
                 , response -> {
                                 Log.w(TAG, response.toString());
-                                startResponseActivity(response);
+                                    try {
+
+                                        if( response.has("ride_drivers") ){
+                                            JSONArray drivers = response.getJSONArray("ride_drivers");
+                                            if(drivers.length() != 0) startResponseActivity(response);
+                                        } else {
+                                            checkStatus(response);
+                                        }
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+
+
                                 }
                 , error -> {
-            Log.w(TAG, error.toString());
-        }
+                    Log.w(TAG, error.toString());
+                }){
 
-        ){
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> params = new HashMap<>();
-                params.put("authorization", token);
-                params.put("version_code", String.valueOf(mPackageCode));
-                params.put("version_name", mPackageName);
-                params.put("application_id", mPackageName);
-                return params;
-            }
+                    @Override
+                    public Map<String, String> getHeaders() {
+                        Map<String, String> params = new HashMap<>();
+                        params.put("authorization", token);
+                        params.put("version_code", String.valueOf(mPackageCode));
+                        params.put("version_name", mPackageName);
+                        params.put("application_id", mPackageName);
+                        return params;
+                    }
         };
 
 
@@ -257,46 +275,102 @@ public class ConfirmationActivity extends FragmentActivity implements OnMapReady
 
     private void startResponseActivity(JSONObject response){
 
-        ArrayList<DriverContract> driversList = new ArrayList<>();
+        ArrayList<AcceptanceContract> contractList = new ArrayList<>();
 
         try {
-            JSONArray driversJson = response.getJSONArray("drivers");
+            JSONArray driversJson = response.getJSONArray("ride_drivers");
+
             for (int i = 0; i < driversJson.length(); i++ ) {
+
                 JSONObject location = driversJson.getJSONObject(i).getJSONObject("loc");
 
-                DriverContract driver = new DriverContract(
-                        driversJson.getJSONObject(i).getString("uid")
+                AcceptanceContract contract = new AcceptanceContract(
+                        driversJson.getJSONObject(i).getString("ride")
+                        , driversJson.getJSONObject(i).getString("driver")
+                        , driversJson.getJSONObject(i).getString("arrival")
+                        , driversJson.getJSONObject(i).getDouble("price")
                         , driversJson.getJSONObject(i).getString("name")
+                        , driversJson.getJSONObject(i).getString("phone")
                         , driversJson.getJSONObject(i).getString("plate")
-                        , (short) driversJson.getJSONObject(i).getInt("status")
-                        , new LatLng( location.getDouble("_latitude"), location.getDouble("_longitude") )
-                        , driversJson.getJSONObject(i).getString("cur")
                         , driversJson.getJSONObject(i).getDouble("ppk")
-                        , driversJson.getJSONObject(i).getString("ride")
                         , driversJson.getJSONObject(i).getDouble("rating")
+                        , driversJson.getJSONObject(i).getInt("rides")
+                        , driversJson.getJSONObject(i).getString("vehicle")
+                        , location.getDouble("_latitude")
+                        , location.getDouble("_longitude")
                 );
-                driversList.add(driver);
+                contractList.add(contract);
             }
+
+
 
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
 
-        Bundle message = new Bundle();
-        message.putParcelable("pickup_address", pickupAddress);
-        message.putParcelable("dest_address", destAddress);
-        message.putInt("payment", payment);
-        message.putParcelableArrayList("drivers", driversList);
+            Bundle message = new Bundle();
+            message.putParcelable("pickup_address", pickupAddress);
+            message.putParcelable("dest_address", destAddress);
+            message.putInt("payment", payment);
+            message.putParcelableArrayList("drivers", contractList);
 
-        Handler handler=new Handler();
-        Runnable r= () -> {
             circleFab.hide() ;
+            timer.cancel();
+
             Intent intent = new Intent(this, ResponseActivity.class);
             intent.putExtras(message);
             startActivity(intent);
-        };
-        handler.postDelayed(r, 2000);
+
+
+
+
+    }
+
+    private void checkStatus(JSONObject response){
+        String status;
+        String ride;
+
+        try {
+            status = response.getString("status");
+            ride = response.getString("ride");
+
+            if(!status.equals("ok")){
+               throw new JSONException("wrong status");
+            }
+
+
+            timer = new CountDownTimer(40000, 10000) {
+
+                public void onTick(long millisUntilFinished) {
+                    checkDrivers(currentUser.getUid(), ride );
+                    Toast.makeText(getBaseContext(), "10 seconds passed", Toast.LENGTH_SHORT).show();
+
+                }
+
+                public void onFinish() {
+                    Toast.makeText(getBaseContext(), "Done", Toast.LENGTH_SHORT).show();
+
+                }
+            }.start();
+
+
+
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+
+
+    private void checkDrivers(String user, String ride){
+
+        JSONObject mRequest = NetworkUtils.createCheckRideRequest(user, ride);
+        URL url = NetworkUtils.buildUrl("checkDrivers");
+        queue.add( makeJsonRequest(Request.Method.POST, url, mRequest, token) );
+
 
     }
 

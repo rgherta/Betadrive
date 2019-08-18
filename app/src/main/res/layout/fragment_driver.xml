@@ -23,48 +23,48 @@
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/subtitle"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingTop="8dp"
-        android:text="Arrives in"
+        android:text="Arrives at"
         android:textAlignment="center"
         android:textAllCaps="true"
         android:textColor="@color/login"
         android:textSize="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@id/driver_frg"
-        tools:ignore="MissingConstraints" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/title_eta"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="24dp"
         android:paddingBottom="8dp"
         android:text="5"
         android:textAlignment="center"
         android:textColor="@color/login"
         android:textSize="32dp"
         android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/subtitle"
-        tools:ignore="MissingConstraints" />
+
+
+        app:layout_constraintEnd_toEndOf="@+id/subtitle"
+        app:layout_constraintStart_toStartOf="@+id/subtitle"
+        app:layout_constraintTop_toBottomOf="@+id/subtitle" />
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/title_min"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
-        android:layout_marginBottom="8dp"
         android:paddingBottom="8dp"
+        android:paddingLeft="4dp"
         android:text="min"
         android:textAlignment="center"
         android:textColor="@color/login"
         android:textSize="16dp"
-        app:layout_constraintBottom_toBottomOf="@id/title_eta"
-        app:layout_constraintStart_toStartOf="@id/title_eta"
-        tools:ignore="MissingConstraints" />
+
+        app:layout_constraintBottom_toBottomOf="@+id/linearLayoutCompat"
+        app:layout_constraintStart_toEndOf="@+id/title_eta"
+        app:layout_constraintTop_toTopOf="@+id/title_eta" />
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:id="@+id/linearLayoutCompat"
@@ -73,7 +73,9 @@
         android:background="#CFD5E1"
         android:elevation="-1dp"
         android:layout_margin="1dip"
-        app:layout_constraintTop_toTopOf="@id/driver_frg"></androidx.appcompat.widget.LinearLayoutCompat>
+        app:layout_constraintTop_toTopOf="@id/driver_frg">
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
 
 
     <androidx.appcompat.widget.AppCompatImageView
@@ -118,6 +120,7 @@
 
 
     <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/add_info"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="32dp"
