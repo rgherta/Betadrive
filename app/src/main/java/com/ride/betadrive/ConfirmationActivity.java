@@ -340,7 +340,7 @@ public class ConfirmationActivity extends FragmentActivity implements OnMapReady
             }
 
 
-            timer = new CountDownTimer(40000, 10000) {
+            timer = new CountDownTimer(50000, 10000) {
 
                 public void onTick(long millisUntilFinished) {
                     checkDrivers(currentUser.getUid(), ride );
@@ -350,6 +350,7 @@ public class ConfirmationActivity extends FragmentActivity implements OnMapReady
 
                 public void onFinish() {
                     Toast.makeText(getBaseContext(), "Done", Toast.LENGTH_SHORT).show();
+                    finish();
 
                 }
             }.start();

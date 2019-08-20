@@ -41,6 +41,7 @@
 
 
         <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/ts_cust"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
@@ -88,6 +89,7 @@
 
 
         <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/ts_dr"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"

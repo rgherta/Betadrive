@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.util.Log;
 
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.GeoPoint;
 import com.ride.betadrive.DataModels.MessageContract;
 
@@ -198,6 +199,7 @@ public class NetworkUtils {
             requestJson = new JSONObject();
             requestJson.put("ride", ride);
             requestJson.put("driver", driver);
+            requestJson.put("customer", FirebaseAuth.getInstance().getCurrentUser().getUid());
 
 
         } catch (JSONException e) {

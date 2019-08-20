@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.ride.betadrive.DataModels.MessageContract;
 import com.ride.betadrive.R;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 public class ChatMessagesAdapter extends RecyclerView.Adapter<ChatMessagesAdapter.MyViewHolder> {
@@ -29,6 +30,9 @@ public class ChatMessagesAdapter extends RecyclerView.Adapter<ChatMessagesAdapte
         public TextView leftMsgTextView;
         public TextView rightMsgTextView;
 
+        public TextView tsDriver;
+        public TextView tsCustomer;
+
         public MyViewHolder(View itemView) {
             super(itemView);
             if(itemView!=null) {
@@ -36,6 +40,9 @@ public class ChatMessagesAdapter extends RecyclerView.Adapter<ChatMessagesAdapte
                 rightMsgLayout = itemView.findViewById(R.id.right_chat);
                 leftMsgTextView = itemView.findViewById(R.id.left_message);
                 rightMsgTextView = itemView.findViewById(R.id.right_message);
+
+                tsCustomer = itemView.findViewById(R.id.ts_cust);
+                tsDriver = itemView.findViewById(R.id.ts_dr);
             }
         }
     }
@@ -74,6 +81,10 @@ public class ChatMessagesAdapter extends RecyclerView.Adapter<ChatMessagesAdapte
             // Show received message in left linearlayout.
             holder.leftMsgLayout.setVisibility(LinearLayout.VISIBLE);
             holder.leftMsgTextView.setText(mMessage.getMessage());
+
+            SimpleDateFormat dateFormat = new SimpleDateFormat("hh:mm");
+            holder.tsCustomer.setText( dateFormat.format(mMessage.getTimestamp()));
+
             holder.rightMsgLayout.setVisibility(LinearLayout.GONE);
         }
         // If the message is a sent message.
@@ -83,6 +94,9 @@ public class ChatMessagesAdapter extends RecyclerView.Adapter<ChatMessagesAdapte
             holder.rightMsgLayout.setVisibility(View.VISIBLE);
             holder.leftMsgLayout.setVisibility(View.GONE);
             holder.rightMsgTextView.setText(mMessage.getMessage());
+
+            SimpleDateFormat dateFormat = new SimpleDateFormat("hh:mm");
+            holder.tsDriver.setText( dateFormat.format(mMessage.getTimestamp()));
         }
     }
 
