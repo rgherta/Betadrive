@@ -30,6 +30,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
@@ -269,7 +270,9 @@ public class ResponseActivity extends AppCompatActivity  implements OnMapReadyCa
                 String token = task.getResult().getToken();
                 JSONObject mRequest = NetworkUtils.acceptDriverJSON(driver.getRide(), driver.getDriver());
                 URL acceptDriverUrl = NetworkUtils.buildUrl("updateRideDriver");
-                queue.add( makeRideUpdateJSON(Request.Method.POST, acceptDriverUrl, mRequest, token) );
+
+                DefaultRetryPolicy retryPolicy = new DefaultRetryPolicy(0, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
+                queue.add( makeRideUpdateJSON(Request.Method.POST, acceptDriverUrl, mRequest, token) ).setRetryPolicy(retryPolicy);
             }
         });
 
@@ -306,7 +309,9 @@ public class ResponseActivity extends AppCompatActivity  implements OnMapReadyCa
                             String token = task.getResult().getToken();
                             JSONObject mRequest = NetworkUtils.sendMessageJSON(newMessage);
                             URL messageUrl = NetworkUtils.buildUrl("sendMessage");
-                            queue.add( sendMessageRequest(Request.Method.POST, messageUrl, mRequest, token) );
+
+                            DefaultRetryPolicy retryPolicy = new DefaultRetryPolicy(0, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
+                            queue.add( sendMessageRequest(Request.Method.POST, messageUrl, mRequest, token) ).setRetryPolicy(retryPolicy);
                         }
                     });
 
