@@ -13,8 +13,10 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
+import com.android.volley.RetryPolicy;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
@@ -196,6 +198,7 @@ public class ConfirmationActivity extends FragmentActivity implements OnMapReady
         String pickup = String.valueOf(pickupAddress.getLatitude()) + ',' + String.valueOf(pickupAddress.getLongitude());
         String destination = String.valueOf(destAddress.getLatitude()) + ',' + String.valueOf(destAddress.getLongitude());
         URL url = NetworkUtils.buildDirectionsUrl("json", pickup, destination, getString(R.string.google_maps_key));
+
         queue.add( makeRequest(Request.Method.GET, url) );
 
 
@@ -224,7 +227,9 @@ public class ConfirmationActivity extends FragmentActivity implements OnMapReady
                 this.token = token;
                 JSONObject mRequest = NetworkUtils.createRideRequest(pickupAddress, destAddress, points, distance, duration, payment, currentUser.getUid());
                 URL hailUrl = NetworkUtils.buildUrl("hail");
-                queue.add( makeJsonRequest(Request.Method.POST, hailUrl, mRequest, token) );
+
+                DefaultRetryPolicy retryPolicy = new DefaultRetryPolicy(0, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
+                queue.add( makeJsonRequest(Request.Method.POST, hailUrl, mRequest, token) ).setRetryPolicy(retryPolicy);
             }
         });
 
@@ -256,9 +261,10 @@ public class ConfirmationActivity extends FragmentActivity implements OnMapReady
                                 }
                 , error -> {
                     Log.w(TAG, error.toString());
-                }){
+                })
+        {
 
-                    @Override
+            @Override
                     public Map<String, String> getHeaders() {
                         Map<String, String> params = new HashMap<>();
                         params.put("authorization", token);
@@ -370,7 +376,9 @@ public class ConfirmationActivity extends FragmentActivity implements OnMapReady
 
         JSONObject mRequest = NetworkUtils.createCheckRideRequest(user, ride);
         URL url = NetworkUtils.buildUrl("checkDrivers");
-        queue.add( makeJsonRequest(Request.Method.POST, url, mRequest, token) );
+
+        DefaultRetryPolicy retryPolicy = new DefaultRetryPolicy(0, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
+        queue.add( makeJsonRequest(Request.Method.POST, url, mRequest, token) ).setRetryPolicy(retryPolicy);
 
 
     }
