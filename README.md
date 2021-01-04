@@ -14,3 +14,17 @@ The source files are in
 * CustomViews (Pointing Pin etc)
 * DataModels (DB contracts)
 * Loaders (background tasks)
+
+## Preview
+
+<table>
+  <tr>
+    <td> 
+      <img width="350px" src="https://raw.githubusercontent.com/rgherta/Betadrive/master/cust1.jpeg" alt="screen" title="Main screen" />
+    </td>
+    <td> 
+      <img width="350px" src="https://raw.githubusercontent.com/rgherta/Betadrive/master/cust2.jpeg" alt="message screen" title="Chat screen" />
+    </td>
+  </tr>
+</table>
+
