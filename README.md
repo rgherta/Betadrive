@@ -15,6 +15,13 @@ The source files are in
 * DataModels (DB contracts)
 * Loaders (background tasks)
 
+## Features
+
+* Login with google
+* Pinpoint location with custom view
+* Chat with driver
+* Real time location updates
+
 ## Preview
 
 <table>
